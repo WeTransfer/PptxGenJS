@@ -6,6 +6,540 @@
 * VER.: 3.2.0
 * BLD.: 20200212
 */
+import { EditorState } from 'draft-js';
+
+const Artboard = {
+	width: 0.9,
+	height: 0.8,
+  };
+
+const AssetSize = {"height":7360,"width":4912}
+
+export const TEXT_BASE_FONT_SIZE = 28;
+export const TEXT_BASE_FONT_SIZE_INTRO = 45;
+export const TEXT_BASE_FONT_SIZE_TELL = 28;
+export const TEXT_BASE_FONT_SIZE_SHOW = 20;
+export const BASE_LAYOUT_WIDTH = 1440;
+export const BASE_LAYOUT_HEIGHT = 810;
+
+const BaseFontIntroSize = 42;
+const BaseFontTellSize = 28;
+const BaseFontShowSize = 19;
+
+const H1FontIntroSize = 101;
+const H1FontTellSize = 68;
+const H1FontShowSize = 45;
+
+const H2FontIntroSize = 57;
+const H2FontTellSize = 38;
+const H2FontShowSize = 25;
+
+const CodeFontIntroSize = 39;
+const CodeFontTellSize = 26;
+const CodeFontShowSize = 17;
+
+const blockTypeOptions = [
+  {
+    blockType: 'header-one',
+    layoutMode: 'Intro',
+    fontSize: 101 / 42,
+    lineSpacing: (80 * 1.5) / H1FontIntroSize,
+    paraSpaceAfter: 0.25,
+    paraSpaceBefore: 0.5,
+  },
+  {
+    blockType: 'header-one',
+    layoutMode: 'Show',
+    fontSize: 45 / 19,
+    lineSpacing: 80 / 1.5 / H1FontShowSize,
+    paraSpaceAfter: 0.5,
+    paraSpaceBefore: 0.1,
+  },
+  {
+    blockType: 'header-one',
+    layoutMode: 'Tell',
+    fontSize: 68 / 28,
+    lineSpacing: 80 / H1FontTellSize,
+    paraSpaceAfter: 0.25,
+    paraSpaceBefore: 0.5,
+  },
+  {
+    blockType: 'header-two',
+    layoutMode: 'Intro',
+    fontSize: 57 / 42,
+    lineSpacing: (55 * 1.5) / H2FontIntroSize,
+    paraSpaceAfter: 0.3,
+    paraSpaceBefore: 0.75,
+  },
+  {
+    blockType: 'header-two',
+    layoutMode: 'Show',
+    fontSize: 25 / 19,
+    lineSpacing: 55 / 1.5 / H2FontShowSize,
+    paraSpaceAfter: 0.3,
+    paraSpaceBefore: 0.75,
+  },
+  {
+    blockType: 'header-two',
+    layoutMode: 'Tell',
+    fontSize: 38 / 28,
+    lineSpacing: 48 / H2FontTellSize,
+    paraSpaceAfter: 0.3,
+    paraSpaceBefore: 0.75,
+  },
+  {
+    blockType: 'unstyled',
+    layoutMode: 'Intro',
+    fontSize: 1,
+    lineSpacing: (41 * 1.5) / BaseFontIntroSize,
+    paraSpaceAfter: 0,
+    paraSpaceBefore: 0,
+  },
+  {
+    blockType: 'unstyled',
+    layoutMode: 'Show',
+    fontSize: 1,
+    lineSpacing: 41 / 1.5 / BaseFontShowSize,
+    paraSpaceAfter: 0,
+    paraSpaceBefore: 0,
+  },
+  {
+    blockType: 'unstyled',
+    layoutMode: 'Tell',
+    fontSize: 1,
+    lineSpacing: 41 / BaseFontTellSize,
+    paraSpaceAfter: 0,
+    paraSpaceBefore: 0,
+  },
+  {
+    blockType: 'code-block',
+    layoutMode: 'Intro',
+    fontSize: 39 / 42,
+    lineSpacing: 38 / CodeFontIntroSize,
+    paraSpaceAfter: 0,
+    paraSpaceBefore: 0,
+  },
+  {
+    blockType: 'code-block',
+    layoutMode: 'Show',
+    fontSize: 17 / 19,
+    lineSpacing: 38 / CodeFontShowSize,
+    paraSpaceAfter: 0,
+    paraSpaceBefore: 0,
+  },
+  {
+    blockType: 'code-block',
+    layoutMode: 'Tell',
+    fontSize: 26 / 28,
+    lineSpacing: 38 / CodeFontTellSize,
+    paraSpaceAfter: 0,
+    paraSpaceBefore: 0,
+  },
+  {
+    blockType: 'list-item',
+    layoutMode: 'Intro',
+    fontSize: 1,
+    lineSpacing: (41 * 1.5) / BaseFontIntroSize,
+    paraSpaceAfter: 0,
+    paraSpaceBefore: 0,
+  },
+  {
+    blockType: 'list-item',
+    layoutMode: 'Show',
+    fontSize: 1,
+    lineSpacing: 41 / 1.5 / BaseFontShowSize,
+    paraSpaceAfter: 0,
+    paraSpaceBefore: 0,
+  },
+  {
+    blockType: 'list-item',
+    layoutMode: 'Tell',
+    fontSize: 1,
+    lineSpacing: 41 / BaseFontTellSize,
+    paraSpaceAfter: 0,
+    paraSpaceBefore: 0,
+  },
+];
+
+const getRelativePosition = (position) => {
+	switch (position) {
+		case Left:
+			return 'Left';
+		case Right:
+			return 'Right';
+		case Top:
+			return 'Top';
+		case 'Bottom':
+			return 'Bottom';
+		case 'Full':
+			return 'Full';
+	};
+}
+
+export const relativePosition = ({ layoutOptions }) => {
+	const { x, y, width, height } = layoutOptions;
+  
+	const isFullWidth = width === 12 || width === null;
+	const isFullHeight = height === 6 || height === null;
+	const isLeft = x === 0 || x === 'center';
+	const isTop = y === 0 || y === 'center';
+  
+	if (isLeft && isTop && isFullHeight && !isFullWidth) {
+	  return 'Left';
+	}
+	if (!isLeft && isTop && isFullHeight && !isFullWidth) {
+	  return 'Right';
+	}
+	if (isTop && isLeft && isFullWidth && !isFullHeight) {
+	  return 'Top';
+	}
+	if (!isTop && isLeft && isFullWidth && !isFullHeight) {
+	  return 'Bottom';
+	}
+	if (isLeft && isTop && isFullWidth && isFullHeight) {
+	  return 'Full';
+	}
+	return null;
+  };
+
+export const percentWidth = (width) => (width ? width / 12 : 1);
+export const percentHeight = (height) => (height ? height / 6 : 1);
+
+const gridWidth = (width) => `${percentWidth(width) * 100}%`;
+const gridHeight = (height) => `${percentHeight(height) * 100}%`;
+
+export const gridVariables = ({ layoutOptions }) => {
+  const fallbackWidth = layoutOptions.x === 'center' ? 8 : null;
+
+  return {
+    '--grid-width': gridWidth(layoutOptions.width || fallbackWidth),
+    '--grid-height': gridHeight(layoutOptions.height),
+    '--grid-x': gridX(layoutOptions.x),
+    '--grid-y': gridY(layoutOptions.y),
+  };
+};
+
+export const getDisplayBleedProps = (
+	artboard,
+	content,
+	hasBleed,
+) => {
+	if (!hasBleed) {
+		return {
+		width: '100%',
+		height: '100%',
+		left: null,
+		top: null,
+		};
+	}
+
+	const horizontalScale = 1 / artboard.width / percentWidth(content.layoutOptions.width);
+	let horizontalMargin = 1 - artboard.width;
+	let leftPosition = horizontalMargin / 2;
+
+	const verticalScale = 1 / artboard.height / percentHeight(content.layoutOptions.height);
+	let verticalMargin = 1 - artboard.height;
+	let topPosition = verticalMargin / 2;
+
+	// if the content is horizontal we only need to correct for half the
+	// horizontal bleed and likewise for vertical content
+	const position = relativePosition(content);
+	if (position === 'Left' || position === 'Right') {
+		horizontalMargin = horizontalMargin / 2;
+	} else if (position === 'Top' || position === 'Bottom') {
+		verticalMargin = verticalMargin / 2;
+	}
+
+	// if the content is positioned on the right or bottom, we dont need
+	// both position adjustments
+	if (position === 'Right') {
+		leftPosition = 0;
+	} else if (position === 'Bottom') {
+		topPosition = 0;
+	}
+	return {
+		width: `${100 + horizontalScale * horizontalMargin * 100}%`,
+		height: `${100 + verticalScale * verticalMargin * 100}%`,
+		left: `${horizontalScale * leftPosition * -100}%`,
+		top: `${verticalScale * topPosition * -100}%`,
+	};
+};
+
+const rgbToHex = (rgb) => {
+	if (rgb.includes('#')) {
+	  return rgb.replace('#', '');
+	}
+	const rbgArray = rgb.replace(/[^\d,]/g, '').split(',');
+	const componentToHex = c => {
+	  const hex = parseInt(c, 10).toString(16);
+	  return hex.length === 1 ? `0${hex}` : hex;
+	};
+	return `${componentToHex(rbgArray[0])}${componentToHex(rbgArray[1])}${componentToHex(
+	  rbgArray[2],
+	)}`;
+  };
+
+const percentStringToNumber = (percentString) => {
+	return parseFloat(percentString) / 100;
+};
+
+const getPPTOptions = (block) => {
+	const calcGridVariables = gridVariables(block);
+	const gridX = calcGridVariables['--grid-x'];
+	const gridY = calcGridVariables['--grid-y'];
+	const w = percentStringToNumber(calcGridVariables['--grid-width']) * artBoardDimensions.width;
+	const h = percentStringToNumber(calcGridVariables['--grid-height']) * artBoardDimensions.height;
+	const x = gridX.includes('calc')
+		? artBoardDimensions.x + (artBoardDimensions.width - w) / 2
+		: artBoardDimensions.x + percentStringToNumber(gridX) * artBoardDimensions.width;
+	const y = gridY.includes('calc')
+		? artBoardDimensions.y + (artBoardDimensions.height - h) / 2
+		: artBoardDimensions.y + percentStringToNumber(gridY) * artBoardDimensions.height;
+	return {
+		x,
+		y,
+		w,
+		h,
+	};
+};
+
+const getAssetContainerCoordinates = (assetContainer, hasBleed) => {
+	const displayBleedProps = getDisplayBleedProps(Artboard, assetContainer, hasBleed);
+	const calcAssetContainer = getPPTOptions(assetContainer);
+	return hasBleed
+		? {
+			x: Math.max(
+			0,
+			calcAssetContainer.x +
+				percentStringToNumber(displayBleedProps.left) * calcAssetContainer.w,
+			),
+			y: Math.max(
+			0,
+			calcAssetContainer.y +
+				percentStringToNumber(displayBleedProps.top) * calcAssetContainer.h,
+			),
+			h: Math.min(
+			calcAssetContainer.h * percentStringToNumber(displayBleedProps.height),
+			presHeight,
+			),
+			w: Math.min(
+			calcAssetContainer.w * percentStringToNumber(displayBleedProps.width),
+			presWidth,
+			),
+		}
+		: calcAssetContainer;
+};
+
+const getAssetCoordinates = (
+	assetContainer,
+	hasBleed,
+) => {
+	const assetContainerCoords = getAssetContainerCoordinates(assetContainer, hasBleed);
+	const assetDimensions = fitToContainer({
+		source: AssetSize,
+		target: { height: assetContainerCoords.h, width: assetContainerCoords.w },
+	});
+	const x = assetContainerCoords.x + (assetContainerCoords.w - assetDimensions.width) / 2;
+	const y = assetContainerCoords.y + (assetContainerCoords.h - assetDimensions.height) / 2;
+	return {
+		x,
+		y,
+		h: assetDimensions.height,
+		w: assetDimensions.width,
+	};
+};
+
+const getTextCoordinates = (textContentBlock) => {
+	const PPTOptions = getPPTOptions(textContentBlock);
+	const textOptions = textContentBlock.textOptions;
+	const textColor = textOptions.color ? rgbToHex(textOptions.color) : null;
+	return {
+	  ...PPTOptions,
+	  align: textOptions.align != null ? textOptions.align : null,
+	  valign: textOptions.valign != null ? textOptions.valign : null,
+	  color: textColor != null ? textColor : null,
+	};
+  };
+
+  export const getAdjustedBaseFontSize = (
+	baseFontSize,
+	layoutMode,
+  ) => {
+	switch (layoutMode) {
+	  case LAYOUT_MODE_SHOW:
+		return TEXT_BASE_FONT_SIZE_SHOW * (baseFontSize / TEXT_BASE_FONT_SIZE);
+	  case LAYOUT_MODE_TELL:
+		return TEXT_BASE_FONT_SIZE_TELL * (baseFontSize / TEXT_BASE_FONT_SIZE);
+	  case LAYOUT_MODE_INTRO:
+		return TEXT_BASE_FONT_SIZE_INTRO * (baseFontSize / TEXT_BASE_FONT_SIZE);
+	  default:
+	}
+  };
+
+  const layoutGetCalculatedFontSize = (
+	containerSize,
+	baseLayoutWidth,
+	baseFontSize,
+  ) => {
+	return (containerSize.width / baseLayoutWidth) * baseFontSize;
+  };
+
+  const getcalculatedFontSize = (slideSize, layoutMode) => {
+	const adjustedFontSize = getAdjustedBaseFontSize(Layout.TEXT_BASE_FONT_SIZE, layoutMode);
+	// these functions return px.  Multiply by 4/3 to get pt, which PptxGenJS uses.
+	return (
+		layoutGetCalculatedFontSize(slideSize, Layout.BASE_LAYOUT_WIDTH, adjustedFontSize) * (4 / 3)
+	);
+  };
+
+  const getFontFace = (blockType) => {
+	let fontFace;
+	switch (blockType) {
+	  case 'header-one':
+		fontFace = 'AvenirNext-Bold';
+		break;
+	  case 'header-two':
+		fontFace = 'AvenirNext-DemiBold'; 
+		break;
+	  default:
+		fontFace = 'AvenirNext-Regular'; 
+		break;
+	}
+	return blockType === 'code-block'
+	  ? 'courier, monospace'
+	  : fontFace;
+  };
+
+  const calcPPTExportGetBlockStyle = (
+	blockType,
+	slideSize,
+	layoutMode,
+  ) => {
+	const fontFace = getFontFace(blockType);
+	const baseFontSize = getcalculatedFontSize(slideSize, layoutMode);
+	let exportBlockType;
+	let fontSize = baseFontSize;
+	let bulletType = false;
+  
+	switch (blockType) {
+	  case 'header-one':
+	  case 'header-two':
+	  case 'unstyled':
+	  case 'code-block':
+		exportBlockType = blockType;
+		break;
+	  case 'unordered-list-item':
+	  case 'checkbox-list-item':
+		bulletType = true;
+		exportBlockType = 'list-item';
+		break;
+	  case 'ordered-list-item':
+		bulletType = { type: 'number' };
+		exportBlockType = 'list-item';
+		break;
+	  default:
+		break;
+	}
+  
+	const blockValues = blockTypeOptions.find(
+	  element => element.blockType === exportBlockType && element.layoutMode === layoutMode,
+	);
+	fontSize = baseFontSize * blockValues.fontSize;
+	return {
+	  fontFace,
+	  fontSize,
+	  lineSpacing: fontSize * blockValues.lineSpacing,
+	  paraSpaceAfter: fontSize * blockValues.paraSpaceAfter,
+	  paraSpaceBefore: fontSize * blockValues.paraSpaceBefore,
+	  bullet: bulletType,
+	};
+  };
+
+  export const PPTExportGetBlockStyle = (
+	blockType,
+	slideSize,
+	layoutMode,
+  ) => {
+	const blockStyle = calcPPTExportGetBlockStyle(blockType, slideSize, layoutMode);
+	return {
+	  ...blockStyle,
+	  fontSize: Math.round(blockStyle.fontSize),
+	  lineSpacing: Math.round(blockStyle.lineSpacing),
+	  paraSpaceAfter: Math.round(blockStyle.paraSpaceAfter),
+	  paraSpaceBefore: Math.round(blockStyle.paraSpaceBefore),
+	};
+  };
+
+  const getTextOptions = (
+	layoutMode,
+	container,
+  ) => {
+	const textCoordinates = getTextCoordinates(container.text);
+	// inset should be 1em
+	const inset = getcalculatedFontSize(slideSize, layoutMode) / dpi;
+	const textOptions = {
+	  ...textCoordinates,
+	  inset: Math.round(inset * 100) / 100,
+	};
+	// get set of text blocks out of draft contentState
+	const contentState = EditorState.createWithContent(block.textBody);
+	const blockMap = contentState.getBlockMap();
+	// create an array to store the data and styling for each text block
+	const textBlocks = [];
+	let charStyleRangeStart = 0;
+	let currentMetadata = null;
+	let inlineStyles = null;
+	let inlineOptions = null;
+	let textBlock = null;
+	blockMap.forEach(block => {
+	  const charList = block.getCharacterList();
+	  const blockStyle = PPTExportGetBlockStyle(block.getType(), slideSize, layoutMode);
+	  charStyleRangeStart = 0;
+	  charList.forEach((charMetadata, index) => {
+		if (index === 0) {
+		  currentMetadata = charMetadata;
+		}
+		// There's a bug in PptGenJS where you can either have:
+		// 1) Correct line spacing by specifying an alignment value
+		// or
+		// 2) ineline styling but with the wrong line spacing.
+		// IF you specify multiple inline styles, they will be on different lines when
+		// alignment is specified, and if you don't specify alignment, then the
+		// line spacing will be way out of wack.
+		// if there is inline stlying, create ranges inside block
+		// if (charMetadata.getStyle() !== currentMetadata.getStyle()) {
+		//   // create text styling range leading up to this style change
+		//   inlineStyles = getInlineStyles(currentMetadata);
+		//   inlineOptions = {
+		//     ...inlineStyles,
+		//     fontFace: blockStyle.fontFace,
+		//     fontSize: blockStyle.fontSize,
+		//   };
+		//   textBlock = {
+		//     text: block.getText().substring(charStyleRangeStart, index),
+		//     options: inlineOptions,
+		//   };
+		//   textBlocks.push(textBlock);
+		//   charStyleRangeStart = index;
+		//   currentMetadata = charMetadata;
+		// }
+	  });
+	  inlineStyles = getInlineStyles(currentMetadata);
+	  inlineOptions = {
+		...blockStyle,
+		...inlineStyles,
+	  };
+	  textBlock = {
+		text: block.getText().substring(charStyleRangeStart, charList.length),
+		options: inlineOptions,
+	  };
+	  textBlocks.push(textBlock);
+	});
+	return {
+	  textBlocks,
+	  textOptions,
+	};
+  };
 
 var isIE11 = typeof window !== 'undefined' && !!window['MSInputMethodContext'] && !!document['documentMode'];
 // Detect Node.js (NODEJS is ultimately used to determine how to save: either `fs` or web-based, so using fs-detection is perfect)
@@ -99,7 +633,7 @@ function getTimestamp() {
 // ==================================================================================================================
 
 function runEveryTest() {
-	return execGenSlidesFuncs( ['Master', 'Chart', 'Image', 'Media', 'Shape', 'Text', 'Table'] );
+	return execGenSlidesFuncs( ['Paste', 'Master', 'Chart', 'Image', 'Media', 'Shape', 'Text', 'Table'] );
 
 	// NOTE: Html2Pptx needs table to be visible (otherwise col widths are even and look horrible)
 	// ....: Therefore, run it mnaually. // if ( typeof table2slides1 !== 'undefined' ) table2slides1();
@@ -126,133 +660,14 @@ function execGenSlidesFuncs(type) {
 	}
 
 	// STEP 2: Set Presentation props (as QA test only - these are not required)
-	pptx.title = 'PptxGenJS Test Suite Presentation';
-	pptx.subject = 'PptxGenJS Test Suite Export';
-	pptx.author = 'Brent Ely';
+	pptx.title = 'Paste Slide Test';
+	pptx.subject = 'Paste Slide Test';
+	pptx.author = 'Eric Rockey';
 	pptx.company = CUST_NAME;
 	pptx.revision = '15';
 
 	// STEP 3: Set layout
 	pptx.layout = 'LAYOUT_WIDE';
-
-	// STEP 4: Create Master Slides (from the old `pptxgen.masters.js` file - `gObjPptxMasters` items)
-	{
-		var objBkg = { path:(NODEJS ? gPaths.starlabsBkgd.path.replace(/http.+\/examples/, '../common') : gPaths.starlabsBkgd.path) };
-		var objImg = { path:(NODEJS ? gPaths.starlabsLogo.path.replace(/http.+\/examples/, '../common') : gPaths.starlabsLogo.path), x:4.6, y:3.5, w:4, h:1.8 };
-
-		// TITLE_SLIDE
-		pptx.defineSlideMaster({
-			title: 'TITLE_SLIDE',
-			bkgd: objBkg,
-			objects: [
-				//{ 'line':  { x:3.5, y:1.0, w:6.0, h:0.0, line:'0088CC', lineSize:5 } },
-				//{ 'chart': { type:'PIE', data:[{labels:['R','G','B'], values:[10,10,5]}], options:{x:11.3, y:0.0, w:2, h:2, dataLabelFontSize:9} } },
-				//{ 'image': { x:11.3, y:6.4, w:1.67, h:0.75, data:starlabsLogoSml } },
-				{ 'rect':  { x: 0.0, y:5.7, w:'100%', h:0.75, fill:'F1F1F1' } },
-				{ 'text':
-					{ text:'Global IT & Services :: Status Report',
-					options:{ x:0.0, y:5.7, w:'100%', h:0.75, fontFace:'Arial', color:'363636', fontSize:20, align:'center', valign:'middle', margin:0 } }
-				}
-			]
-		});
-
-		// MASTER_PLAIN
-		pptx.defineSlideMaster({
-			title: 'MASTER_PLAIN',
-			bkgd: 'FFFFFF',
-			margin:  [ 0.5, 0.25, 1.0, 0.25 ],
-			objects: [
-				{ 'rect':  { x: 0.00, y:6.90, w:'100%', h:0.6, fill:'003b75' } },
-				{ 'image': { x:11.45, y:5.95, w:1.67, h:0.75, data:starlabsLogoSml } },
-				{ 'text':
-					{
-						options: {x:0, y:6.9, w:'100%', h:0.6, align:'center', valign:'middle', color:'FFFFFF', fontSize:12},
-						text: 'S.T.A.R. Laboratories - Confidential'
-					}
-				}
-			],
-			slideNumber: { x:0.6, y:7.1, color:'FFFFFF', fontFace:'Arial', fontSize:10 }
-		});
-
-		// MASTER_SLIDE (MASTER_PLACEHOLDER)
-		pptx.defineSlideMaster({
-			title: 'MASTER_SLIDE',
-			bkgd: 'FFFFFF',
-			margin:  [ 0.5, 0.25, 1.0, 0.25 ],
-			slideNumber: { x:0.6, y:7.1, color:'FFFFFF', fontFace:'Arial', fontSize:10 },
-			objects: [
-				{ 'rect':  { x: 0.00, y:6.90, w:'100%', h:0.6, fill:'003b75' } },
-				//{ 'image': { x:11.45, y:5.95, w:1.67, h:0.75, data:starlabsLogoSml } },
-				{ 'text':
-					{
-						options: {x:0, y:6.9, w:'100%', h:0.6, align:'center', valign:'middle', color:'FFFFFF', fontSize:12},
-						text: 'S.T.A.R. Laboratories - Confidential'
-					}
-				},
-				{ 'placeholder':
-					{
-						options: { name:'title', type:'title', x:0.6, y:0.2, w:12, h:1.0 },
-						text: ''
-					}
-				},
-				{ 'placeholder':
-					{
-						options: { name:'body', type:'body', x:0.6, y:1.5, w:12, h:5.25 },
-						text: '(supports custom placeholder text!)'
-					}
-				}
-			]
-		});
-
-		// THANKS_SLIDE (THANKS_PLACEHOLDER)
-		pptx.defineSlideMaster({
-			title: 'THANKS_SLIDE',
-			bkgd: '36ABFF',
-			objects: [
-				{ 'rect':  { x:0.0, y:3.4, w:'100%', h:2.0, fill:'ffffff' } },
-				{ 'placeholder': { options:{ name:'thanksText', type:'title', x:0.0, y:0.9, w:'100%', h:1, fontFace:'Arial', color:'FFFFFF', fontSize:60, align:'center' } } },
-				{ 'image': objImg },
-				{ 'placeholder':
-					{
-						options: { name:'body', type:'body', x:0.0, y:6.45, w:'100%', h:1, fontFace:'Courier', color:'FFFFFF', fontSize:32, align:'center' },
-						text: '(add homepage URL)'
-					}
-				}
-			]
-		});
-
-		// PLACEHOLDER_SLIDE
-		/* FUTURE: ISSUE#599
-		pptx.defineSlideMaster({
-		  title : 'PLACEHOLDER_SLIDE',
-		  margin: [0.5, 0.25, 1.00, 0.25],
-		  bkgd  : 'FFFFFF',
-		  objects: [
-			  { 'placeholder':
-			  	{
-					options: {type:'body'},
-					image: {x:11.45, y:5.95, w:1.67, h:0.75, data:starlabsLogoSml}
-				}
-			},
-			  { 'placeholder':
-				  {
-					  options: { name:'body', type:'body', x:0.6, y:1.5, w:12, h:5.25 },
-					  text: '(supports custom placeholder text!)'
-				  }
-			  }
-		  ],
-		  slideNumber: { x:1.0, y:7.0, color:'FFFFFF' }
-	  });*/
-
-		// MISC: Only used for Issues, ad-hoc slides etc (for screencaps)
-		pptx.defineSlideMaster({
-			title: 'DEMO_SLIDE',
-			objects: [
-				{ 'rect':  { x:0.0, y:7.1, w:'100%', h:0.4, fill:'f1f1f1' } },
-				{ 'text':  { text:'PptxGenJS - JavaScript PowerPoint Library - (github.com/gitbrent/PptxGenJS)', options:{ x:0.0, y:7.1, w:'100%', h:0.4, color:'6c6c6c', fontSize:10, align:'center' } } }
-			]
-		});
-	}
 
 	// STEP 5: Run requested test
 	var arrTypes = ( typeof type === 'string' ? [type] : type );
@@ -271,582 +686,10 @@ function execGenSlidesFuncs(type) {
 	}
 }
 
+// ==================================================================================================================
+
 function genSlides_Paste(pptx) {
-	var Draft = require('draft-js');
-
-	var slide = require('./json/PasteJSON.json');
-	const Artboard = {
-		width: 0.9,
-		height: 0.8,
-	  };
-	
-	const AssetSize = {"height":7360,"width":4912}
-
-	const presWidth = 10;
-	const presHeight = 5.625;
-	const dpi = 96 / 1.75;
-	const slideSize = {
-		width: presWidth * dpi,
-		height: presHeight * dpi,
-	};
-
-	const artBoardDimensions = {
-		x: (presWidth * (1 - Artboard.width)) / 2,
-		y: (presHeight * (1 - Artboard.height)) / 2,
-		width: presWidth * Artboard.width,
-		height: presHeight * Artboard.height,
-	};
-
-	const LAYOUT_MODE_SHOW = 'Show';
- 	const LAYOUT_MODE_TELL = 'Tell';
- 	const LAYOUT_MODE_INTRO = 'Intro';
-	
-	const TEXT_BASE_FONT_SIZE = 28;
-	const TEXT_BASE_FONT_SIZE_INTRO = 45;
-	const TEXT_BASE_FONT_SIZE_TELL = 28;
-	const TEXT_BASE_FONT_SIZE_SHOW = 20;
-	const BASE_LAYOUT_WIDTH = 1440;
-	const BASE_LAYOUT_HEIGHT = 810;
-	
-	const BaseFontIntroSize = 42;
-	const BaseFontTellSize = 28;
-	const BaseFontShowSize = 19;
-	
-	const H1FontIntroSize = 101;
-	const H1FontTellSize = 68;
-	const H1FontShowSize = 45;
-	
-	const H2FontIntroSize = 57;
-	const H2FontTellSize = 38;
-	const H2FontShowSize = 25;
-	
-	const CodeFontIntroSize = 39;
-	const CodeFontTellSize = 26;
-	const CodeFontShowSize = 17;
-	
-	const blockTypeOptions = [
-	  {
-		blockType: 'header-one',
-		layoutMode: 'Intro',
-		fontSize: 101 / 42,
-		lineSpacing: (80 * 1.5) / H1FontIntroSize,
-		paraSpaceAfter: 0.25,
-		paraSpaceBefore: 0.5,
-	  },
-	  {
-		blockType: 'header-one',
-		layoutMode: 'Show',
-		fontSize: 45 / 19,
-		lineSpacing: 80 / 1.5 / H1FontShowSize,
-		paraSpaceAfter: 0.5,
-		paraSpaceBefore: 0.1,
-	  },
-	  {
-		blockType: 'header-one',
-		layoutMode: 'Tell',
-		fontSize: 68 / 28,
-		lineSpacing: 80 / H1FontTellSize,
-		paraSpaceAfter: 0.25,
-		paraSpaceBefore: 0.5,
-	  },
-	  {
-		blockType: 'header-two',
-		layoutMode: 'Intro',
-		fontSize: 57 / 42,
-		lineSpacing: (55 * 1.5) / H2FontIntroSize,
-		paraSpaceAfter: 0.3,
-		paraSpaceBefore: 0.75,
-	  },
-	  {
-		blockType: 'header-two',
-		layoutMode: 'Show',
-		fontSize: 25 / 19,
-		lineSpacing: 55 / 1.5 / H2FontShowSize,
-		paraSpaceAfter: 0.3,
-		paraSpaceBefore: 0.75,
-	  },
-	  {
-		blockType: 'header-two',
-		layoutMode: 'Tell',
-		fontSize: 38 / 28,
-		lineSpacing: 48 / H2FontTellSize,
-		paraSpaceAfter: 0.3,
-		paraSpaceBefore: 0.75,
-	  },
-	  {
-		blockType: 'unstyled',
-		layoutMode: 'Intro',
-		fontSize: 1,
-		lineSpacing: (41 * 1.5) / BaseFontIntroSize,
-		paraSpaceAfter: 0,
-		paraSpaceBefore: 0,
-	  },
-	  {
-		blockType: 'unstyled',
-		layoutMode: 'Show',
-		fontSize: 1,
-		lineSpacing: 41 / 1.5 / BaseFontShowSize,
-		paraSpaceAfter: 0,
-		paraSpaceBefore: 0,
-	  },
-	  {
-		blockType: 'unstyled',
-		layoutMode: 'Tell',
-		fontSize: 1,
-		lineSpacing: 41 / BaseFontTellSize,
-		paraSpaceAfter: 0,
-		paraSpaceBefore: 0,
-	  },
-	  {
-		blockType: 'code-block',
-		layoutMode: 'Intro',
-		fontSize: 39 / 42,
-		lineSpacing: 38 / CodeFontIntroSize,
-		paraSpaceAfter: 0,
-		paraSpaceBefore: 0,
-	  },
-	  {
-		blockType: 'code-block',
-		layoutMode: 'Show',
-		fontSize: 17 / 19,
-		lineSpacing: 38 / CodeFontShowSize,
-		paraSpaceAfter: 0,
-		paraSpaceBefore: 0,
-	  },
-	  {
-		blockType: 'code-block',
-		layoutMode: 'Tell',
-		fontSize: 26 / 28,
-		lineSpacing: 38 / CodeFontTellSize,
-		paraSpaceAfter: 0,
-		paraSpaceBefore: 0,
-	  },
-	  {
-		blockType: 'list-item',
-		layoutMode: 'Intro',
-		fontSize: 1,
-		lineSpacing: (41 * 1.5) / BaseFontIntroSize,
-		paraSpaceAfter: 0,
-		paraSpaceBefore: 0,
-	  },
-	  {
-		blockType: 'list-item',
-		layoutMode: 'Show',
-		fontSize: 1,
-		lineSpacing: 41 / 1.5 / BaseFontShowSize,
-		paraSpaceAfter: 0,
-		paraSpaceBefore: 0,
-	  },
-	  {
-		blockType: 'list-item',
-		layoutMode: 'Tell',
-		fontSize: 1,
-		lineSpacing: 41 / BaseFontTellSize,
-		paraSpaceAfter: 0,
-		paraSpaceBefore: 0,
-	  },
-	];
-	
-	 const relativePosition = ({ layoutOptions }) => {
-		const { x, y, width, height } = layoutOptions;
-	  
-		const isFullWidth = width === 12 || width === null;
-		const isFullHeight = height === 6 || height === null;
-		const isLeft = x === 0 || x === 'center';
-		const isTop = y === 0 || y === 'center';
-	  
-		if (isLeft && isTop && isFullHeight && !isFullWidth) {
-		  return 'Left';
-		}
-		if (!isLeft && isTop && isFullHeight && !isFullWidth) {
-		  return 'Right';
-		}
-		if (isTop && isLeft && isFullWidth && !isFullHeight) {
-		  return 'Top';
-		}
-		if (!isTop && isLeft && isFullWidth && !isFullHeight) {
-		  return 'Bottom';
-		}
-		if (isLeft && isTop && isFullWidth && isFullHeight) {
-		  return 'Full';
-		}
-		return null;
-	  };
-	
-	const percentWidth = (width) => (width ? width / 12 : 1);
-	const percentHeight = (height) => (height ? height / 6 : 1);
-	
-	const gridWidth = (width) => `${percentWidth(width) * 100}%`;
-	const gridHeight = (height) => `${percentHeight(height) * 100}%`;
-
-	const gridX = (x) =>
-  		x === 'center' ? 'calc(50% - (var(--grid-width) / 2))' : `${(x / 12) * 100}%`;
-
-	const gridY = (y) =>
-  		y === 'center' ? 'calc(50% - (var(--grid-height) / 2))' : `${(y / 6) * 100}%`;
-	
-	const gridVariables = ({ layoutOptions }) => {
-	const fallbackWidth = layoutOptions.x === 'center' ? 8 : null;
-	
-	  return {
-		'--grid-width': gridWidth(layoutOptions.width || fallbackWidth),
-		'--grid-height': gridHeight(layoutOptions.height),
-		'--grid-x': gridX(layoutOptions.x),
-		'--grid-y': gridY(layoutOptions.y),
-	  };
-	};
-
-	const scaleToContainFit = ({
-		containerSize,
-		sizeToFit,
-		gutterWidth = 0,
-		gutterHeight = 0,
-	  }) => {
-		const widthFactor = (containerSize.width - gutterWidth) / sizeToFit.width;
-		const heightFactor = (containerSize.height - gutterHeight) / sizeToFit.height;
-		return Math.min(widthFactor, heightFactor);
-	  };
-
-	const fitToContainer = ({
-		source,
-		target,
-		round,
-	  }) => {
-		const scaleFactor = scaleToContainFit({
-		  sizeToFit: source,
-		  containerSize: target,
-		});
-		const fitSize = {
-		  height: source.height * scaleFactor,
-		  width: source.width * scaleFactor,
-		};
-		return round ? roundedSize(fitSize) : fitSize;
-	  };
-	
-	 const getDisplayBleedProps = (
-		artboard,
-		content,
-		hasBleed,
-	) => {
-		if (!hasBleed) {
-			return {
-			width: '100%',
-			height: '100%',
-			left: null,
-			top: null,
-			};
-		}
-	
-		const horizontalScale = 1 / artboard.width / percentWidth(content.layoutOptions.width);
-		let horizontalMargin = 1 - artboard.width;
-		let leftPosition = horizontalMargin / 2;
-	
-		const verticalScale = 1 / artboard.height / percentHeight(content.layoutOptions.height);
-		let verticalMargin = 1 - artboard.height;
-		let topPosition = verticalMargin / 2;
-	
-		// if the content is horizontal we only need to correct for half the
-		// horizontal bleed and likewise for vertical content
-		const position = relativePosition(content);
-		if (position === 'Left' || position === 'Right') {
-			horizontalMargin = horizontalMargin / 2;
-		} else if (position === 'Top' || position === 'Bottom') {
-			verticalMargin = verticalMargin / 2;
-		}
-	
-		// if the content is positioned on the right or bottom, we dont need
-		// both position adjustments
-		if (position === 'Right') {
-			leftPosition = 0;
-		} else if (position === 'Bottom') {
-			topPosition = 0;
-		}
-		return {
-			width: `${100 + horizontalScale * horizontalMargin * 100}%`,
-			height: `${100 + verticalScale * verticalMargin * 100}%`,
-			left: `${horizontalScale * leftPosition * -100}%`,
-			top: `${verticalScale * topPosition * -100}%`,
-		};
-	};
-	
-	const rgbToHex = (rgb) => {
-		if (rgb.includes('#')) {
-		  return rgb.replace('#', '');
-		}
-		const rbgArray = rgb.replace(/[^\d,]/g, '').split(',');
-		const componentToHex = c => {
-		  const hex = parseInt(c, 10).toString(16);
-		  return hex.length === 1 ? `0${hex}` : hex;
-		};
-		return `${componentToHex(rbgArray[0])}${componentToHex(rbgArray[1])}${componentToHex(
-		  rbgArray[2],
-		)}`;
-	  };
-	
-	const percentStringToNumber = (percentString) => {
-		return parseFloat(percentString) / 100;
-	};
-	
-	const getPPTOptions = (block) => {
-		const calcGridVariables = gridVariables(block);
-		const gridX = calcGridVariables['--grid-x'];
-		const gridY = calcGridVariables['--grid-y'];
-		const w = percentStringToNumber(calcGridVariables['--grid-width']) * artBoardDimensions.width;
-		const h = percentStringToNumber(calcGridVariables['--grid-height']) * artBoardDimensions.height;
-		const x = gridX.includes('calc')
-			? artBoardDimensions.x + (artBoardDimensions.width - w) / 2
-			: artBoardDimensions.x + percentStringToNumber(gridX) * artBoardDimensions.width;
-		const y = gridY.includes('calc')
-			? artBoardDimensions.y + (artBoardDimensions.height - h) / 2
-			: artBoardDimensions.y + percentStringToNumber(gridY) * artBoardDimensions.height;
-		return {
-			x,
-			y,
-			w,
-			h,
-		};
-	};
-	
-	const getAssetContainerCoordinates = (assetContainer, hasBleed) => {
-		const displayBleedProps = getDisplayBleedProps(Artboard, assetContainer, hasBleed);
-		const calcAssetContainer = getPPTOptions(assetContainer);
-		return hasBleed
-			? {
-				x: Math.max(
-				0,
-				calcAssetContainer.x +
-					percentStringToNumber(displayBleedProps.left) * calcAssetContainer.w,
-				),
-				y: Math.max(
-				0,
-				calcAssetContainer.y +
-					percentStringToNumber(displayBleedProps.top) * calcAssetContainer.h,
-				),
-				h: Math.min(
-				calcAssetContainer.h * percentStringToNumber(displayBleedProps.height),
-				presHeight,
-				),
-				w: Math.min(
-				calcAssetContainer.w * percentStringToNumber(displayBleedProps.width),
-				presWidth,
-				),
-			}
-			: calcAssetContainer;
-	};
-	
-	const getAssetCoordinates = (
-		assetContainer,
-		hasBleed,
-	) => {
-		const assetContainerCoords = getAssetContainerCoordinates(assetContainer, hasBleed);
-		const assetDimensions = fitToContainer({
-			source: AssetSize,
-			target: { height: assetContainerCoords.h, width: assetContainerCoords.w },
-		});
-		const x = assetContainerCoords.x + (assetContainerCoords.w - assetDimensions.width) / 2;
-		const y = assetContainerCoords.y + (assetContainerCoords.h - assetDimensions.height) / 2;
-		return {
-			x,
-			y,
-			h: assetDimensions.height,
-			w: assetDimensions.width,
-		};
-	};
-	
-	const getTextCoordinates = (textContentBlock) => {
-		const PPTOptions = getPPTOptions(textContentBlock);
-		const textOptions = textContentBlock.textOptions;
-		const textColor = textOptions.color ? rgbToHex(textOptions.color) : null;
-		return {
-		  ...PPTOptions,
-		  align: textOptions.align != null ? textOptions.align : null,
-		  valign: textOptions.valign != null ? textOptions.valign : null,
-		  color: textColor != null ? textColor : null,
-		};
-	  };
-	
-	   const getAdjustedBaseFontSize = (
-		baseFontSize,
-		layoutMode,
-	  ) => {
-		switch (layoutMode) {
-		  case LAYOUT_MODE_SHOW:
-			return TEXT_BASE_FONT_SIZE_SHOW * (baseFontSize / TEXT_BASE_FONT_SIZE);
-		  case LAYOUT_MODE_TELL:
-			return TEXT_BASE_FONT_SIZE_TELL * (baseFontSize / TEXT_BASE_FONT_SIZE);
-		  case LAYOUT_MODE_INTRO:
-			return TEXT_BASE_FONT_SIZE_INTRO * (baseFontSize / TEXT_BASE_FONT_SIZE);
-		  default:
-		}
-	  };
-	
-	  const layoutGetCalculatedFontSize = (
-		containerSize,
-		baseLayoutWidth,
-		baseFontSize,
-	  ) => {
-		return (containerSize.width / baseLayoutWidth) * baseFontSize;
-	  };
-	
-	  const getcalculatedFontSize = (slideSize, layoutMode) => {
-		const adjustedFontSize = getAdjustedBaseFontSize(TEXT_BASE_FONT_SIZE, layoutMode);
-		// these functions return px.  Multiply by 4/3 to get pt, which PptxGenJS uses.
-		return (
-			layoutGetCalculatedFontSize(slideSize, BASE_LAYOUT_WIDTH, adjustedFontSize) * (4 / 3)
-		);
-	  };
-	
-	  const getFontFace = (blockType) => {
-		let fontFace;
-		switch (blockType) {
-		  case 'header-one':
-			fontFace = 'AvenirNext-Bold';
-			break;
-		  case 'header-two':
-			fontFace = 'AvenirNext-DemiBold'; 
-			break;
-		  default:
-			fontFace = 'AvenirNext-Regular'; 
-			break;
-		}
-		return blockType === 'code-block'
-		  ? 'courier, monospace'
-		  : fontFace;
-	  };
-	
-	  const calcPPTGetBlockStyle = (
-		blockType,
-		slideSize,
-		layoutMode,
-	  ) => {
-		const fontFace = getFontFace(blockType);
-		const baseFontSize = getcalculatedFontSize(slideSize, layoutMode);
-		let BlockType;
-		let fontSize = baseFontSize;
-		let bulletType = false;
-	  
-		switch (blockType) {
-		  case 'header-one':
-		  case 'header-two':
-		  case 'unstyled':
-		  case 'code-block':
-			BlockType = blockType;
-			break;
-		  case 'unordered-list-item':
-		  case 'checkbox-list-item':
-			bulletType = true;
-			BlockType = 'list-item';
-			break;
-		  case 'ordered-list-item':
-			bulletType = { type: 'number' };
-			BlockType = 'list-item';
-			break;
-		  default:
-			break;
-		}
-	  
-		const blockValues = blockTypeOptions.find(
-		  element => element.blockType === BlockType && element.layoutMode === layoutMode,
-		);
-		fontSize = baseFontSize * blockValues.fontSize;
-		return {
-		  fontFace,
-		  fontSize,
-		  lineSpacing: fontSize * blockValues.lineSpacing,
-		  paraSpaceAfter: fontSize * blockValues.paraSpaceAfter,
-		  paraSpaceBefore: fontSize * blockValues.paraSpaceBefore,
-		  bullet: bulletType,
-		};
-	  };
-	
-	   const PPTGetBlockStyle = (
-		blockType,
-		slideSize,
-		layoutMode,
-	  ) => {
-		const blockStyle = calcPPTGetBlockStyle(blockType, slideSize, layoutMode);
-		return {
-		  ...blockStyle,
-		  fontSize: Math.round(blockStyle.fontSize),
-		  lineSpacing: Math.round(blockStyle.lineSpacing),
-		  paraSpaceAfter: Math.round(blockStyle.paraSpaceAfter),
-		  paraSpaceBefore: Math.round(blockStyle.paraSpaceBefore),
-		};
-	  };
-	
-	  const getTextOptions = (
-		layoutMode,
-		container,
-	  ) => {
-		const textCoordinates = getTextCoordinates(container.text);
-		// inset should be 1em
-		const inset = getcalculatedFontSize(slideSize, layoutMode) / dpi;
-		const textOptions = {
-		  ...textCoordinates,
-		  inset: Math.round(inset * 100) / 100,
-		};
-		// get set of text blocks out of draft contentState
-		const textBody = Object.assign({}, container.text.textBody);
-		const contentState = Draft.convertFromRaw(textBody);
-		const blockMap = contentState.getBlockMap();
-		// create an array to store the data and styling for each text block
-		const textBlocks = [];
-		let charStyleRangeStart = 0;
-		let currentMetadata = null;
-		let inlineStyles = null;
-		let inlineOptions = null;
-		let textBlock = null;
-		blockMap.forEach(block => {
-		  const charList = block.getCharacterList();
-		  const blockStyle = PPTGetBlockStyle(block.getType(), slideSize, layoutMode);
-		  charStyleRangeStart = 0;
-		  charList.forEach((charMetadata, index) => {
-			if (index === 0) {
-			  currentMetadata = charMetadata;
-			}
-			// There's a bug in PptGenJS where you can either have:
-			// 1) Correct line spacing by specifying an alignment value
-			// or
-			// 2) ineline styling but with the wrong line spacing.
-			// IF you specify multiple inline styles, they will be on different lines when
-			// alignment is specified, and if you don't specify alignment, then the
-			// line spacing will be way out of wack.
-			// if there is inline stlying, create ranges inside block
-			// if (charMetadata.getStyle() !== currentMetadata.getStyle()) {
-			//   // create text styling range leading up to this style change
-			//   inlineStyles = getInlineStyles(currentMetadata);
-			//   inlineOptions = {
-			//     ...inlineStyles,
-			//     fontFace: blockStyle.fontFace,
-			//     fontSize: blockStyle.fontSize,
-			//   };
-			//   textBlock = {
-			//     text: block.getText().substring(charStyleRangeStart, index),
-			//     options: inlineOptions,
-			//   };
-			//   textBlocks.push(textBlock);
-			//   charStyleRangeStart = index;
-			//   currentMetadata = charMetadata;
-			// }
-		  });
-		  inlineStyles = getInlineStyles(currentMetadata);
-		  inlineOptions = {
-			...blockStyle,
-			...inlineStyles,
-		  };
-		  textBlock = {
-			text: block.getText().substring(charStyleRangeStart, charList.length),
-			options: inlineOptions,
-		  };
-		  textBlocks.push(textBlock);
-		});
-		return {
-		  textBlocks,
-		  textOptions,
-		};
-	  };
-
-
+	var slide = require('PasteJSON.json');
 	const pptSlide = pptx.addSlide();
 	const backgroundColor = '010302';
 	pptSlide.bkgd = backgroundColor;
@@ -915,9 +758,8 @@ function genSlides_Paste(pptx) {
 		);
 		pptSlide.addText(textBlocks, textOptions);
 	});
+	pptx.writeFile('pptexport.pptx');
 }
-
-// ==================================================================================================================
 
 function genSlides_Table(pptx) {
 	pptx.addSection({ title: 'Tables' });
@@ -3573,6 +3415,7 @@ function genSlides_Master(pptx) {
 		var slide1 = pptx.addSlide( pptx.masters.TITLE_SLIDE  );
 		var slide2 = pptx.addSlide( pptx.masters.MASTER_SLIDE );
 		var slide3 = pptx.addSlide( pptx.masters.THANKS_SLIDE );
+
 		var slide4 = pptx.addSlide( pptx.masters.TITLE_SLIDE,  { bkgd:'0088CC', slideNumber:{x:'50%', y:'90%', color:'0088CC'} } );
 		var slide5 = pptx.addSlide( pptx.masters.MASTER_SLIDE, { bkgd:{ path:'https://raw.githubusercontent.com/gitbrent/PptxGenJS/v2.1.0/examples/images/title_bkgd_alt.jpg' } } );
 		var slide6 = pptx.addSlide( pptx.masters.THANKS_SLIDE, { bkgd:'ffab33' } );
