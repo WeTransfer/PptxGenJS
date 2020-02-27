@@ -132,8 +132,8 @@ function execGenSlidesFuncs(type) {
 	pptx.company = CUST_NAME;
 	pptx.revision = '15';
 
-	// STEP 3: Set layout
-	pptx.layout = 'LAYOUT_WIDE';
+	// // STEP 3: Set layout
+	// pptx.layout = 'LAYOUT_WIDE';
 
 	// STEP 4: Create Master Slides (from the old `pptxgen.masters.js` file - `gObjPptxMasters` items)
 	{
@@ -273,14 +273,14 @@ function execGenSlidesFuncs(type) {
 
 function genSlides_Paste(pptx) {
 	var Draft = require('draft-js');
-
-	var slide = require('./json/PasteJSON.json');
+	var tinycolor = require('tinycolor2');
+	var slide = require('./json/PasteSchema.json');
+	var bentoSchema = require('./json/PasteBentoSchema.json');
+	var textBody = require('./json/TextBody.json');
 	const Artboard = {
 		width: 0.9,
 		height: 0.8,
 	  };
-	
-	const AssetSize = {"height":7360,"width":4912}
 
 	const presWidth = 10;
 	const presHeight = 5.625;
@@ -323,6 +323,8 @@ function genSlides_Paste(pptx) {
 	const CodeFontIntroSize = 39;
 	const CodeFontTellSize = 26;
 	const CodeFontShowSize = 17;
+
+	const White = '#FFFFFF';
 	
 	const blockTypeOptions = [
 	  {
@@ -496,6 +498,28 @@ function genSlides_Paste(pptx) {
 	  };
 	};
 
+	const getAutoColorPalette = (slide) => {
+		const colorPalette =
+		  slide.assets.length > 0 ? slide.assets[0].metadata.colorPalette : null;
+		return colorPalette;
+	  }
+
+	const getBackGroundColor = (
+		slide,
+	  ) => {
+		var baseColor = null;
+		if (slide.backgroundColor == null) {
+			if (getAutoColorPalette(slide) == null) {
+				baseColor = White;
+			} else {
+				baseColor = getAutoColorPalette(slide).background;
+			}
+		  } else {
+			baseColor = slide.backgroundColor;
+		  }
+		return tinycolor(baseColor).toHex();
+	  };
+
 	const scaleToContainFit = ({
 		containerSize,
 		sizeToFit,
@@ -523,11 +547,7 @@ function genSlides_Paste(pptx) {
 		return round ? roundedSize(fitSize) : fitSize;
 	  };
 	
-	 const getDisplayBleedProps = (
-		artboard,
-		content,
-		hasBleed,
-	) => {
+	const getDisplayBleedProps = (artboard, content, hasBleed) => {
 		if (!hasBleed) {
 			return {
 			width: '100%',
@@ -578,9 +598,7 @@ function genSlides_Paste(pptx) {
 		  const hex = parseInt(c, 10).toString(16);
 		  return hex.length === 1 ? `0${hex}` : hex;
 		};
-		return `${componentToHex(rbgArray[0])}${componentToHex(rbgArray[1])}${componentToHex(
-		  rbgArray[2],
-		)}`;
+		return `${componentToHex(rbgArray[0])}${componentToHex(rbgArray[1])}${componentToHex(rbgArray[2])}`;
 	  };
 	
 	const percentStringToNumber = (percentString) => {
@@ -615,34 +633,26 @@ function genSlides_Paste(pptx) {
 				x: Math.max(
 				0,
 				calcAssetContainer.x +
-					percentStringToNumber(displayBleedProps.left) * calcAssetContainer.w,
-				),
+					percentStringToNumber(displayBleedProps.left) * calcAssetContainer.w),
 				y: Math.max(
 				0,
 				calcAssetContainer.y +
-					percentStringToNumber(displayBleedProps.top) * calcAssetContainer.h,
-				),
+					percentStringToNumber(displayBleedProps.top) * calcAssetContainer.h),
 				h: Math.min(
-				calcAssetContainer.h * percentStringToNumber(displayBleedProps.height),
-				presHeight,
-				),
+				calcAssetContainer.h * percentStringToNumber(displayBleedProps.height), presHeight),
 				w: Math.min(
-				calcAssetContainer.w * percentStringToNumber(displayBleedProps.width),
-				presWidth,
-				),
+				calcAssetContainer.w * percentStringToNumber(displayBleedProps.width), presWidth),
 			}
 			: calcAssetContainer;
 	};
 	
 	const getAssetCoordinates = (
-		assetContainer,
-		hasBleed,
+		assetContainer, 
+		hasBleed, 
+		asset,
 	) => {
 		const assetContainerCoords = getAssetContainerCoordinates(assetContainer, hasBleed);
-		const assetDimensions = fitToContainer({
-			source: AssetSize,
-			target: { height: assetContainerCoords.h, width: assetContainerCoords.w },
-		});
+		const assetDimensions = fitToContainer({source: asset.content.size, target: { height: assetContainerCoords.h, width: assetContainerCoords.w }});
 		const x = assetContainerCoords.x + (assetContainerCoords.w - assetDimensions.width) / 2;
 		const y = assetContainerCoords.y + (assetContainerCoords.h - assetDimensions.height) / 2;
 		return {
@@ -773,6 +783,19 @@ function genSlides_Paste(pptx) {
 		  paraSpaceBefore: Math.round(blockStyle.paraSpaceBefore),
 		};
 	  };
+
+	  const getInlineStyles = (rangeStyle) => {
+		if (rangeStyle.length > 0) {
+		  return {
+			bold: rangeStyle.hasStyle('BOLD'),
+			italic: rangeStyle.hasStyle('ITALIC'),
+		  };
+		}
+		return {
+		  bold: false,
+		  italic: false,
+		};
+	  };
 	
 	  const getTextOptions = (
 		layoutMode,
@@ -785,8 +808,7 @@ function genSlides_Paste(pptx) {
 		  ...textCoordinates,
 		  inset: Math.round(inset * 100) / 100,
 		};
-		// get set of text blocks out of draft contentState
-		const textBody = Object.assign({}, container.text.textBody);
+		// get set of text blocks out of draft raw 
 		const contentState = Draft.convertFromRaw(textBody);
 		const blockMap = contentState.getBlockMap();
 		// create an array to store the data and styling for each text block
@@ -845,24 +867,38 @@ function genSlides_Paste(pptx) {
 		  textOptions,
 		};
 	  };
+	const getLayoutMode = (slide) => {
+		const layoutModeCustomization = slide.layoutCustomizations.find((c) => 'LayoutMode' === c.type)
+
+		const {mode: slideLayoutMode} = layoutModeCustomization  || {mode: null}
+
+		const layoutModeAuto = slide.layoutCustomizations.find((c) => 'LayoutModeAuto' === c.type)
+
+		const {mode: slideLayoutModeAuto} = layoutModeAuto || {mode: null}
+
+		const finalLayoutMode = slideLayoutMode !== null ? slideLayoutMode :
+			(slideLayoutModeAuto !== null ? slideLayoutModeAuto : LAYOUT_MODE_TELL)
+
+		return (finalLayoutMode)
+	}
 
 
 	const pptSlide = pptx.addSlide();
-	const backgroundColor = '010302';
+	const backgroundColor = getBackGroundColor(slide); // '010302';
 	pptSlide.bkgd = backgroundColor;
-	const layoutMode = 'Tell';
-	slide.containers.forEach(container => {
-		const assetType = 'Image';
+	const layoutMode = getLayoutMode(slide);
+	const asset = slide.assets[0];
+	bentoSchema.containers.forEach(container => {
 		let assetURL = null;
 		let assetCoordinates = null;
 		const hasBleed = layoutMode !== 'Tell';
 		const isIntro = layoutMode === 'Intro';
 		assetCoordinates = isIntro
 		  ? getAssetContainerCoordinates(container.assetContainer, hasBleed)
-		  : getAssetCoordinates(container.assetContainer, hasBleed);
-		switch (assetType) {
+		  : getAssetCoordinates(container.assetContainer, hasBleed, asset);
+		switch (asset.type) {
 		  case 'Image': {
-			assetURL = './images/Paste-Photo.jpg';
+			assetURL = 'https://raw.githubusercontent.com/WeTransfer/PptxGenJS/pptXNodeDemo/demos/common/images/Paste-Photo.jpg';
 			const imageOptions = {
 			  ...assetCoordinates,
 			  path: assetURL,
