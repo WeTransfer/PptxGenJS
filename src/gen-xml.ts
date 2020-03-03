@@ -1185,8 +1185,8 @@ export function genXmlTextBody(slideObj: ISlideObject | ITableCell): string {
 		if (idx === 0) {
 			// Add paragraphProperties right after <p> before textrun(s) begin
 			strSlideXml += '<a:p>' + paragraphPropXml
-		} else if (idx > 0 && (typeof textObj.options.bullet !== 'undefined' || typeof textObj.options.align !== 'undefined')) {
-			strSlideXml += '</a:p><a:p>' + paragraphPropXml
+		} else if ( idx > 0 && (typeof textObj.options.breakLine === 'undefined' || textObj.options.breakLine) && (typeof textObj.options.bullet !== 'undefined' || typeof textObj.options.align !== 'undefined') ) {
+			strSlideXml += '</a:p><a:p>' + paragraphPropXml;
 		}
 
 		// C: Inherit any main options (color, fontSize, etc.)
