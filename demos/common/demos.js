@@ -429,14 +429,12 @@ function genSlides_Paste(pptx) {
 		};
 	};
 	
-	const getTextCoordinates = (textContentBlock) => {
+	const getTextBlockProperties = (textContentBlock) => {
 		const PPTOptions = getPPTCoordinates(textContentBlock);
 		const textOptions = textContentBlock.textOptions;
 		const textColor = textOptions.color ? colorToHex(textOptions.color) : null;
 		return {
 		  ...PPTOptions,
-		  align: textOptions.align != null ? textOptions.align : null,
-		  valign: textOptions.valign != null ? textOptions.valign : null,
 		  color: textColor != null ? textColor : null,
 		};
 	  };
@@ -506,19 +504,19 @@ function genSlides_Paste(pptx) {
 			case 'header-two':
 			case 'unstyled':
 			case 'code-block':
-			BlockType = blockType;
-			break;
+				BlockType = blockType;
+				break;
 			case 'unordered-list-item':
 			case 'checkbox-list-item':
-			bulletType = true;
-			BlockType = 'list-item';
-			break;
+				bulletType = true;
+				BlockType = 'list-item';
+				break;
 			case 'ordered-list-item':
-			bulletType = { type: 'number' };
-			BlockType = 'list-item';
-			break;
+				bulletType = { type: 'number' };
+				BlockType = 'list-item';
+				break;
 			default:
-			break;
+				break;
 		}
 		
 		const blockValues = blockTypeOptions.find(
@@ -539,6 +537,7 @@ function genSlides_Paste(pptx) {
 		blockType,
 		slideSize,
 		layoutMode,
+		textOptions,
 	) => {
 		const blockStyle = calcPPTGetBlockStyle(blockType, slideSize, layoutMode);
 		return {
@@ -547,6 +546,8 @@ function genSlides_Paste(pptx) {
 			lineSpacing: Math.round(blockStyle.lineSpacing),
 			paraSpaceAfter: Math.round(blockStyle.paraSpaceAfter),
 			paraSpaceBefore: Math.round(blockStyle.paraSpaceBefore),
+			align: textOptions.align != null ? textOptions.align : null,
+			valign: textOptions.valign != null ? textOptions.valign : null,
 		};
 	};
 
@@ -567,11 +568,11 @@ function genSlides_Paste(pptx) {
 		layoutMode,
 		container,
 	) => {
-		const textCoordinates = getTextCoordinates(container.text);
+		const textBlockProperties = getTextBlockProperties(container.text);
 		// inset should be 1em
 		const inset = getcalculatedFontSize(slideSize, layoutMode) / dpi;
 		const textOptions = {
-			...textCoordinates,
+			...textBlockProperties,
 			inset: Math.round(inset * 100) / 100,
 		};
 		// get set of text blocks out of draft raw 
@@ -584,47 +585,61 @@ function genSlides_Paste(pptx) {
 		let inlineStyles = null;
 		let inlineOptions = null;
 		let textBlock = null;
+		let isFirstRun = false;
+		let calcBlockStyle = null;
+		let addBreak = null;
 		blockMap.forEach(block => {
 			const charList = block.getCharacterList();
-			const blockStyle = PPTGetBlockStyle(block.getType(), slideSize, layoutMode);
+			const blockStyle = PPTGetBlockStyle(block.getType(), slideSize, layoutMode, container.text.textOptions);
 			charStyleRangeStart = 0;
 			charList.forEach((charMetadata, index) => {
-			if (index === 0) {
-				currentMetadata = charMetadata;
-			}
-			// There's a bug in PptGenJS where you can either have:
-			// 1) Correct line spacing by specifying an alignment value
-			// or
-			// 2) ineline styling but with the wrong line spacing.
-			// IF you specify multiple inline styles, they will be on different lines when
-			// alignment is specified, and if you don't specify alignment, then the
-			// line spacing will be way out of wack.
-			// if there is inline stlying, create ranges inside block
-			// if (charMetadata.getStyle() !== currentMetadata.getStyle()) {
-			//   // create text styling range leading up to this style change
-			//   inlineStyles = getInlineStyles(currentMetadata);
-			//   inlineOptions = {
-			//     ...inlineStyles,
-			//     fontFace: blockStyle.fontFace,
-			//     fontSize: blockStyle.fontSize,
-			//   };
-			//   textBlock = {
-			//     text: block.getText().substring(charStyleRangeStart, index),
-			//     options: inlineOptions,
-			//   };
-			//   textBlocks.push(textBlock);
-			//   charStyleRangeStart = index;
-			//   currentMetadata = charMetadata;
-			// }
+				if (index === 0) {
+					currentMetadata = charMetadata;
+					isFirstRun = true;
+				}
+				// There's a bug in PptGenJS where you can either have:
+				// 1) Correct line spacing by specifying an alignment value
+				// or
+				// 2) ineline styling but with the wrong line spacing.
+				// IF you specify multiple inline styles, they will be on different lines when
+				// alignment is specified, and if you don't specify alignment, then the
+				// line spacing will be way out of wack.
+				// if there is inline stlying, create ranges inside block
+				if (charMetadata.getStyle() !== currentMetadata.getStyle()) {
+					// create text styling range leading up to this style change
+					inlineStyles = getInlineStyles(currentMetadata);
+					calcBlockStyle = isFirstRun ? blockStyle : null;
+					addBreak = isFirstRun ? null : {break: false}
+					inlineOptions = {
+						...inlineStyles,
+						...calcBlockStyle,
+						...addBreak,
+						fontFace: blockStyle.fontFace,
+						fontSize: blockStyle.fontSize,
+					};
+					textBlock = {
+						text: block.getText().substring(charStyleRangeStart, index),
+						options: inlineOptions,
+					};
+					textBlocks.push(textBlock);
+					charStyleRangeStart = index;
+					currentMetadata = charMetadata;
+					isFirstRun = false;
+				}
 			});
 			inlineStyles = getInlineStyles(currentMetadata);
+			calcBlockStyle = isFirstRun ? blockStyle : null;
 			inlineOptions = {
-			...blockStyle,
-			...inlineStyles,
+				...inlineStyles,
+				...calcBlockStyle,
+				break: false,
+				breakLine: true,
+				fontFace: blockStyle.fontFace,
+				fontSize: blockStyle.fontSize,
 			};
 			textBlock = {
-			text: block.getText().substring(charStyleRangeStart, charList.size),
-			options: inlineOptions,
+				text: block.getText().substring(charStyleRangeStart, charList.size),
+				options: inlineOptions,
 			};
 			textBlocks.push(textBlock);
 		});

@@ -350,6 +350,7 @@ export interface ITextOpts extends PositionOptions, OptsDataOrPath, FontOptions 
 		wrap?: boolean
 	}
 	bold?: boolean
+	break?: boolean
 	breakLine?: boolean
 	bullet?: boolean | { type?: string; code?: string; style?: string; startAt?: number }
 	charSpacing?: number
@@ -358,6 +359,7 @@ export interface ITextOpts extends PositionOptions, OptsDataOrPath, FontOptions 
 	glow?: IGlowOptions
 	hyperlink?: HyperLink
 	indentLevel?: number
+	inlineBreak?: boolean
 	inset?: number
 	isTextBox?: boolean
 	italic?: boolean

@@ -220,7 +220,6 @@ function slideObjectToXml(slide: ISlide | ISlideLayout): string {
 				// We have to build an actual grid now
 				/*
 					EX: (A0:rowspan=3, B1:rowspan=2, C1:colspan=2)
-
 					/------|------|------|------\
 					|  A0  |  B0  |  C0  |  D0  |
 					|      |  B1  |  C1  |      |
@@ -1185,7 +1184,7 @@ export function genXmlTextBody(slideObj: ISlideObject | ITableCell): string {
 		if (idx === 0) {
 			// Add paragraphProperties right after <p> before textrun(s) begin
 			strSlideXml += '<a:p>' + paragraphPropXml
-		} else if (idx > 0 && (typeof textObj.options.bullet !== 'undefined' || typeof textObj.options.align !== 'undefined')) {
+		} else if (idx > 0 && (typeof textObj.options.break === 'undefined' || textObj.options.break) && (typeof textObj.options.bullet !== 'undefined' || typeof textObj.options.align !== 'undefined')) {
 			strSlideXml += '</a:p><a:p>' + paragraphPropXml
 		}
 
