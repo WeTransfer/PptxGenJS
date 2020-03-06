@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-03-05T22:37:25.973Z */
+/* PptxGenJS 3.2.0-beta @ 2020-03-06T19:57:05.248Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2220,8 +2220,9 @@ function genXmlTextRun(textObj) {
         arrLines.forEach(function (line, idx) {
             xmlTextRun += '<a:r>' + startInfo + '<a:t>' + encodeXmlEntities(line);
             // Stop/Start <p>aragraph as long as there is more lines ahead (otherwise its closed at the end of this function)
-            if (idx + 1 < arrLines.length)
+            if (idx + 1 < arrLines.length) {
                 xmlTextRun += (textObj.options.breakLine ? CRLF : '') + '</a:t></a:r>';
+            }
         });
     }
     else {

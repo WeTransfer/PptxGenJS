@@ -632,8 +632,7 @@ function genSlides_Paste(pptx) {
 			inlineOptions = {
 				...inlineStyles,
 				...calcBlockStyle,
-				break: false,
-				breakLine: true,
+				break: true,
 				fontFace: blockStyle.fontFace,
 				fontSize: blockStyle.fontSize,
 			};

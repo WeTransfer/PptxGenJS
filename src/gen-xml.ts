@@ -1013,7 +1013,9 @@ function genXmlTextRun(textObj: IText): string {
 		arrLines.forEach((line, idx) => {
 			xmlTextRun += '<a:r>' + startInfo + '<a:t>' + encodeXmlEntities(line)
 			// Stop/Start <p>aragraph as long as there is more lines ahead (otherwise its closed at the end of this function)
-			if (idx + 1 < arrLines.length) xmlTextRun += (textObj.options.breakLine ? CRLF : '') + '</a:t></a:r>'
+			if (idx + 1 < arrLines.length) {
+				xmlTextRun += (textObj.options.breakLine ? CRLF : '') + '</a:t></a:r>'
+			}
 		})
 	} else {
 		// Handle cases where addText `text` was an array of objects - if a text object doesnt contain a '\n' it still need alignment!
@@ -1179,7 +1181,6 @@ export function genXmlTextBody(slideObj: ISlideObject | ITableCell): string {
 
 		textObj.options.lineIdx = idx
 		paragraphPropXml = genXmlParagraphProperties(textObj, false)
-
 		// B: Start paragraph if this is the first text obj, or if current textObj is about to be bulleted or aligned
 		if (idx === 0) {
 			// Add paragraphProperties right after <p> before textrun(s) begin
