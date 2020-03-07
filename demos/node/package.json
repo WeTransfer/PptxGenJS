@@ -1,4 +1,4 @@
-{
+	{
 	"name": "pptxgenjs-node-demo",
 	"version": "3.1.0",
 	"author": {
@@ -15,5 +15,6 @@
 		"react": "^16.13.0",
 		"react-dom": "^16.13.0",
 		"tinycolor2": "^1.4.1"
-	}
+	},
+	"type": "module"
 }

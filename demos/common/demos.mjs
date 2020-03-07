@@ -1,18 +1,20 @@
-import { colorToHex } from 'ColorAnalysis';
-import { fromSlideViewModel, getBackGroundColor, getLayoutMode} from 'fromSlideViewModel';
-import slide from './json/PasteSchema.json';
-import pptxgen from "pptxgenjs";
-
+import { colorToHex } from '../common/ColorAnalysis.mjs';
+import { fromSlideViewModel, getBackGroundColor, getLayoutMode} from '../common/fromSlideViewModel.mjs';
+import pptxgen from '../../dist/pptxgen.cjs.js';
+import pasteSchema from './json/PasteSchema.json';
 
 function getTimestamp() {
 	var dateNow = new Date();
-	var dateMM = dateNow.getMonth() + 1; dateDD = dateNow.getDate(); dateYY = dateNow.getFullYear(), h = dateNow.getHours(); m = dateNow.getMinutes();
+    var dateMM = dateNow.getMonth() + 1; 
+    var dateDD = dateNow.getDate(); 
+    var h = dateNow.getHours(); 
+    var m  = dateNow.getMinutes();
 	return dateNow.getFullYear() +''+ (dateMM<=9 ? '0' + dateMM : dateMM) +''+ (dateDD<=9 ? '0' + dateDD : dateDD) + (h<=9 ? '0' + h : h) + (m<=9 ? '0' + m : m);
 }
 
 // ==================================================================================================================
 
-function execGenSlidesFuncs(type) {
+export const execGenSlidesFuncs = (type) => {
 	// STEP 1: Instantiate new PptxGenJS object
 	var pptx;
 	// var PptxGenJsLib;
@@ -32,8 +34,6 @@ function execGenSlidesFuncs(type) {
 }
 
 function genSlides_Paste(pptx) {
-	var bentoSchema = fromSlideViewModel(slide); // require('./json/PasteBentoSchema.json');
-
 	// standard margins on slides for layouts that don't bleed to the edge
 	const ArtboardMargins = {
 		width: 0.9,
@@ -212,31 +212,31 @@ function genSlides_Paste(pptx) {
 	];
 	
 	// port of some of the Bento code to convert Bento schema into positions
-	 const relativePosition = ({ layoutOptions }) => {
-		const { x, y, width, height } = layoutOptions;
-	  
-		const isFullWidth = width === 12 || width === null;
-		const isFullHeight = height === 6 || height === null;
-		const isLeft = x === 0 || x === 'center';
-		const isTop = y === 0 || y === 'center';
-	  
-		if (isLeft && isTop && isFullHeight && !isFullWidth) {
-		  return 'Left';
-		}
-		if (!isLeft && isTop && isFullHeight && !isFullWidth) {
-		  return 'Right';
-		}
-		if (isTop && isLeft && isFullWidth && !isFullHeight) {
-		  return 'Top';
-		}
-		if (!isTop && isLeft && isFullWidth && !isFullHeight) {
-		  return 'Bottom';
-		}
-		if (isLeft && isTop && isFullWidth && isFullHeight) {
-		  return 'Full';
-		}
-		return null;
-	  };
+    const relativePosition = ({ layoutOptions }) => {
+        const { x, y, width, height } = layoutOptions;
+        
+        const isFullWidth = width === 12 || width === null;
+        const isFullHeight = height === 6 || height === null;
+        const isLeft = x === 0 || x === 'center';
+        const isTop = y === 0 || y === 'center';
+        
+        if (isLeft && isTop && isFullHeight && !isFullWidth) {
+            return 'Left';
+        }
+        if (!isLeft && isTop && isFullHeight && !isFullWidth) {
+            return 'Right';
+        }
+        if (isTop && isLeft && isFullWidth && !isFullHeight) {
+            return 'Top';
+        }
+        if (!isTop && isLeft && isFullWidth && !isFullHeight) {
+            return 'Bottom';
+        }
+        if (isLeft && isTop && isFullWidth && isFullHeight) {
+            return 'Full';
+        }
+        return null;
+    };
 	
 	const percentWidth = (width) => (width ? width / 12 : 1);
 	const percentHeight = (height) => (height ? height / 6 : 1);
@@ -609,83 +609,77 @@ function genSlides_Paste(pptx) {
 			textBlocks,
 			textOptions,
 		};
-	};
+    };
 
-
-	const pptSlide = pptx.addSlide();
-	const backgroundColor = getBackGroundColor(slide); 
-	pptSlide.bkgd = backgroundColor;
-	const layoutMode = getLayoutMode(slide);
-	const asset = slide.assets[0];
-	bentoSchema.containers.forEach(container => {
-		let assetURL = null;
-		let assetCoordinates = null;
-		const hasBleed = layoutMode !== 'Tell';
-		const isIntro = layoutMode === 'Intro';
-		assetCoordinates = isIntro
-		  ? getAssetContainerCoordinates(container.assetContainer, hasBleed)
-		  : getAssetCoordinates(container.assetContainer, hasBleed, asset);
-		switch (asset.type) {
-		  case 'Image': {
-			assetURL = 'https://raw.githubusercontent.com/WeTransfer/PptxGenJS/pptXNodeDemo/demos/common/images/Paste-Photo.jpg';
-			const imageOptions = {
-			  ...assetCoordinates,
-			  path: assetURL,
-			  type: isIntro ? 'cover' : 'contain',
-			};
-			pptSlide.addImage(imageOptions);
-			break;
-		  }
-		  case 'OEmbed':
-			assetURL = asset.sourceURL;
-			switch (asset.content.type) {
-			  case 'Photo': {
-				const imageOptions = {
-				  ...assetCoordinates,
-				  path: assetURL,
-				  type: isIntro ? 'cover' : 'contain',
-				};
-				pptSlide.addImage(imageOptions);
-				break;
-			  }
-			  case 'Video': {
-				const videoOptions = {
-				  ...assetCoordinates,
-				  link: assetURL,
-				  type: 'online',
-				};
-				pptSlide.addMedia(videoOptions);
-				break;
-			  }
-			  default:
-				break;
-			}
-			break;
-		  case 'Video': {
-			assetURL = asset.bestTranscoding.url;
-			const videoOptions = {
-			  ...assetCoordinates,
-			  path: assetURL,
-			  type: 'video',
-			};
-			pptSlide.addMedia(videoOptions);
-			break;
-		  }
-		  default:
-			break;
-		}
-		const { textBlocks, textOptions } = getTextOptions(
-		  layoutMode,
-		  container,
-		);
-		pptSlide.addText(textBlocks, textOptions);
-	});
-}
-
-// ==================================================================================================================
-
-if ( typeof module !== 'undefined' && module.exports ) {
-	module.exports = {
-		execGenSlidesFuncs: execGenSlidesFuncs
-	}
+    pasteSchema.deck.slides.forEach(slide => {
+        const bentoSchema = fromSlideViewModel(slide);
+        const pptSlide = pptx.addSlide();
+        const backgroundColor = getBackGroundColor(slide); 
+        pptSlide.bkgd = backgroundColor;
+        const layoutMode = getLayoutMode(slide);
+        const asset = slide.assets[0];
+        bentoSchema.containers.forEach(container => {
+            let assetURL = null;
+            let assetCoordinates = null;
+            const hasBleed = layoutMode !== 'Tell';
+            const isIntro = layoutMode === 'Intro';
+            assetCoordinates = isIntro
+              ? getAssetContainerCoordinates(container.assetContainer, hasBleed)
+              : getAssetCoordinates(container.assetContainer, hasBleed, asset);
+            switch (asset.type) {
+              case 'Image': {
+                assetURL = asset.content.metadata.url;
+                const imageOptions = {
+                  ...assetCoordinates,
+                  path: assetURL,
+                  type: isIntro ? 'cover' : 'contain',
+                };
+                pptSlide.addImage(imageOptions);
+                break;
+              }
+              case 'OEmbed':
+                assetURL = asset.content.photo.url;
+                switch (asset.content.type) {
+                  case 'Photo': {
+                    const imageOptions = {
+                      ...assetCoordinates,
+                      path: assetURL,
+                      type: isIntro ? 'cover' : 'contain',
+                    };
+                    pptSlide.addImage(imageOptions);
+                    break;
+                  }
+                  case 'Video': {
+                    const videoOptions = {
+                      ...assetCoordinates,
+                      link: assetURL,
+                      type: 'online',
+                    };
+                    pptSlide.addMedia(videoOptions);
+                    break;
+                  }
+                  default:
+                    break;
+                }
+                break;
+              case 'Video': {
+                assetURL = asset.bestTranscoding.url;
+                const videoOptions = {
+                  ...assetCoordinates,
+                  path: assetURL,
+                  type: 'video',
+                };
+                pptSlide.addMedia(videoOptions);
+                break;
+              }
+              default:
+                break;
+            }
+            const { textBlocks, textOptions } = getTextOptions(
+              layoutMode,
+              container,
+            );
+            pptSlide.addText(textBlocks, textOptions);
+        });
+    })
 }

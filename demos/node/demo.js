@@ -11,19 +11,15 @@
  */
 
 // ============================================================================
+import { execGenSlidesFuncs} from "../common/demos.mjs";
 let verboseMode = true;
-let PptxGenJS = require("pptxgenjs");
-let demo = require("../common/demos.js");
-let pptx = new PptxGenJS();
 
 if (verboseMode) console.log(`\n-----==~==[ STARTING DEMO ]==~==-----\n`);
-if (verboseMode) console.log(`* pptxgenjs ver: ${pptx.version}`);
-if (verboseMode) console.log(`* save location: ${__dirname}`);
 
 // STEP 2: Run predefined test from `../common/demos.js` //-OR-// Local Tests (callbacks, etc.)
 Promise.resolve()
 	.then(() => {
-		return demo.execGenSlidesFuncs();
+		return execGenSlidesFuncs();
 	})
 	.catch(err => {
 		throw err;
