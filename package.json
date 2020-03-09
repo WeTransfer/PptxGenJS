@@ -76,5 +76,6 @@
   ],
   "bugs": {
     "url": "https://github.com/gitbrent/PptxGenJS/issues"
-  }
+  },
+  "type": "module"
 }
