@@ -1,6 +1,6 @@
 import { getAssetContainerCoordinates, getAssetCoordinates, getTextOptions} from './GeneratePPTCoordinates.mjs';
 import { fromSlideViewModel, getBackGroundColor, getLayoutMode} from './fromSlideViewModel.mjs';
-import PptxGenJS from '../../dist/pptxgen.cjs.js';
+import pptxgen from '../../dist/pptxgen.cjs.js';
 import pasteSchema from './json/PasteSchema.json';
 
 const getTimestamp = () => {
@@ -13,7 +13,7 @@ const getTimestamp = () => {
 }
 
 const genSlides_Paste = (pptx) => {
-    pasteSchema.deck.slides.forEach(slide => {
+    pasteSchema.slides.forEach(slide => {
         const bentoSchema = fromSlideViewModel(slide);
         const pptSlide = pptx.addSlide();
         const backgroundColor = getBackGroundColor(slide); 
