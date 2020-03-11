@@ -229,11 +229,19 @@ export interface IImageOpts extends PositionOptions, OptsDataOrPath {
 	rounding?: boolean
 	placeholder?: any
 	rotate?: number
+	extension?: string
+}
+
+export interface MediaThumbnail {
+	link: string
+	extension: string
 }
 export interface IMediaOpts extends PositionOptions, OptsDataOrPath {
 	link: string
 	onlineVideoLink?: string
 	type?: MediaType
+	extension?: string
+	thumbnail?: MediaThumbnail
 }
 
 export interface IShapeOptions extends PositionOptions {

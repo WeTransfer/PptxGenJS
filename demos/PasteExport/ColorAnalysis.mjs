@@ -1,3 +1,4 @@
+import * as math from './ColorAnalysisMath.mjs';
 import tinycolor from 'tinycolor2';
 
 const hueTable = [/*   0deg */ 0, -10, -10, 20, 20, 10, /* 180deg */ 10, 10, 10, -10, -20, 10];

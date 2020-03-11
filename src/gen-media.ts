@@ -2,15 +2,30 @@
  * PptxGenJS: Media Methods
  */
 
+import * as JSZip from 'jszip'
 import { IMG_BROKEN } from './core-enums'
 import { ISlide, ISlideLayout, ISlideRelMedia } from './core-interfaces'
+
+// for local files and non https files
+function zipBase64MediaData(fs: any, rel: any, zip: JSZip) {
+	if (rel.type !== 'online' && rel.type !== 'hyperlink') {
+		// A: Loop vars
+		let data: string = rel.data && typeof rel.data === 'string' ? rel.data : ''
+
+		// B: Users will undoubtedly pass various string formats, so correct prefixes as needed
+		if (data.indexOf(',') === -1 && data.indexOf(';') === -1) data = 'image/png;base64,' + data
+		else if (data.indexOf(',') === -1) data = 'image/png;base64,' + data
+		else if (data.indexOf(';') === -1) data = 'image/png;' + data
+		zip.file(rel.Target.replace('..', 'ppt'), data.split(',').pop(), { base64: true })
+	}
+}
 
 /**
  * Encode Image/Audio/Video into base64
  * @param {ISlide | ISlideLayout} layout - slide layout
  * @return {Promise} promise of generating the rels
  */
-export function encodeSlideMediaRels(layout: ISlide | ISlideLayout): Promise<string>[] {
+export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip): Promise<string>[] {
 	const fs = typeof require !== 'undefined' && typeof window === 'undefined' ? require('fs') : null // NodeJS
 	const https = typeof require !== 'undefined' && typeof window === 'undefined' ? require('https') : null // NodeJS
 	let imageProms: Promise<string>[] = []
@@ -22,10 +37,11 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout): Promise<str
 			imageProms.push(
 				new Promise((resolve, reject) => {
 					if (fs && rel.path.indexOf('http') !== 0) {
-						// DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
+						// // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
 						try {
 							let bitmap = fs.readFileSync(rel.path)
 							rel.data = Buffer.from(bitmap).toString('base64')
+							zipBase64MediaData(fs, rel, zip)
 							resolve('done')
 						} catch (ex) {
 							rel.data = IMG_BROKEN
@@ -37,7 +53,8 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout): Promise<str
 							res.setEncoding('binary') // IMPORTANT: Only binary encoding works
 							res.on('data', chunk => (rawData += chunk))
 							res.on('end', () => {
-								rel.data = Buffer.from(rawData, 'binary').toString('base64')
+								rel.data = Buffer.from(rawData, 'binary')
+								zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 								resolve('done')
 							})
 							res.on('error', ex => {
@@ -54,10 +71,12 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout): Promise<str
 							reader.onloadend = () => {
 								rel.data = reader.result
 								if (!rel.isSvgPng) {
+									zipBase64MediaData(fs, rel, zip)
 									resolve('done')
 								} else {
 									createSvgPngPreview(rel)
 										.then(() => {
+											zipBase64MediaData(fs, rel, zip)
 											resolve('done')
 										})
 										.catch(ex => {

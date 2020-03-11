@@ -37,6 +37,7 @@
     "https": "^1.0.0",
     "image-size": "^0.8.3",
     "jszip": "^3.2.2",
+    "jszip-utils": "^0.1.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "tinycolor2": "^1.4.1"

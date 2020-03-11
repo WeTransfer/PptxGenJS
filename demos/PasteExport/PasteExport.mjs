@@ -1,7 +1,9 @@
-import { getAssetContainerCoordinates, getAssetCoordinates, getTextOptions} from './GeneratePPTCoordinates.mjs';
-import { fromSlideViewModel, getBackGroundColor, getLayoutMode} from './fromSlideViewModel.mjs';
+import { createSignedFilestackURL, getExtensionFromMimetype, getExtensionFromURL } from './Filestack.mjs';
+import { getAssetContainerCoordinates, getAssetCoordinates, getTextOptions } from './GeneratePPTCoordinates.mjs';
+import { fromSlideViewModel, getBackGroundColor, getLayoutMode, hasText } from './fromSlideViewModel.mjs';
 import pptxgen from '../../dist/pptxgen.cjs.js';
 import pasteSchema from './json/PasteSchema.json';
+import policySchema from './json/PastePolicy.json';
 
 const getTimestamp = () => {
 	var dateNow = new Date();
@@ -13,6 +15,7 @@ const getTimestamp = () => {
 }
 
 const genSlides_Paste = (pptx) => {
+    const policy = policySchema;
     pasteSchema.slides.forEach(slide => {
         const bentoSchema = fromSlideViewModel(slide);
         const pptSlide = pptx.addSlide();
@@ -30,19 +33,20 @@ const genSlides_Paste = (pptx) => {
               : getAssetCoordinates(container.assetContainer, hasBleed, asset);
             switch (asset.type) {
               case 'Image': {
-                assetURL = asset.content.metadata.url;
+                assetURL = createSignedFilestackURL(policy, asset.content.metadata.url);
                 const imageOptions = {
                   ...assetCoordinates,
                   path: assetURL,
                   type: isIntro ? 'cover' : 'contain',
+                  extension: getExtensionFromMimetype(asset.content.metadata.mimetype),
                 };
                 pptSlide.addImage(imageOptions);
                 break;
               }
               case 'OEmbed':
-                assetURL = asset.content.photo.url;
                 switch (asset.content.type) {
                   case 'Photo': {
+                    assetURL = asset.content.photo.url;
                     const imageOptions = {
                       ...assetCoordinates,
                       path: assetURL,
@@ -52,10 +56,15 @@ const genSlides_Paste = (pptx) => {
                     break;
                   }
                   case 'Video': {
+                    assetURL = asset.sourceURL;
                     const videoOptions = {
                       ...assetCoordinates,
                       link: assetURL,
                       type: 'online',
+                      thumbnail: {
+                        link: createSignedFilestackURL(policy, asset.content.metadata.thumbnail.url),
+                        extension: getExtensionFromURL(asset.content.metadata.thumbnail.url),
+                      },
                     };
                     pptSlide.addMedia(videoOptions);
                     break;
@@ -65,10 +74,15 @@ const genSlides_Paste = (pptx) => {
                 }
                 break;
               case 'Video': {
-                assetURL = asset.bestTranscoding.url;
+                assetURL = createSignedFilestackURL(policy, asset.transcodings[0].content.metadata.url);
                 const videoOptions = {
                   ...assetCoordinates,
                   path: assetURL,
+                  extension: getExtensionFromMimetype(asset.transcodings[0].content.metadata.mimetype),
+                  thumbnail: {
+                    link: createSignedFilestackURL(policy, asset.thumbnail.metadata.url),
+                    extension: getExtensionFromMimetype(asset.thumbnail.metadata.mimetype),
+                  },
                   type: 'video',
                 };
                 pptSlide.addMedia(videoOptions);
@@ -77,11 +91,13 @@ const genSlides_Paste = (pptx) => {
               default:
                 break;
             }
-            const { textBlocks, textOptions } = getTextOptions(
-              layoutMode,
-              container,
-            );
-            pptSlide.addText(textBlocks, textOptions);
+            if (hasText(slide)) {
+              const { textBlocks, textOptions } = getTextOptions(
+                layoutMode,
+                container,
+              );
+              pptSlide.addText(textBlocks, textOptions);
+            }
         });
     })
 }
@@ -92,7 +108,6 @@ export const exportSlides = (type) => {
 	pptx = new pptxgen();
 
 	genSlides_Paste(pptx);
-	
 	// Export Presentation
 	return pptx.writeFile('PptxGenJS_Demo_Node_'+type+'_'+getTimestamp());
 }

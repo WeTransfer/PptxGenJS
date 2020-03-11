@@ -618,7 +618,9 @@ function slideObjectToXml(slide: ISlide | ISlideLayout): string {
 							.split('/')
 							.pop()
 							.split('.')
-							.shift() +
+							.shift()
+							.replace('&', '')
+							.replace('?', '') +
 						'"><a:hlinkClick r:id="" action="ppaction://media"/></p:cNvPr>'
 					strSlideXml += ' <p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr>'
 					strSlideXml += ' <p:nvPr>'

@@ -351,19 +351,21 @@ export function addImageDefinition(target: ISlide, opt: IImageOpts) {
 
 	// STEP 1: Set extension
 	// NOTE: Split to address URLs with params (eg: `path/brent.jpg?someParam=true`)
-	let strImgExtn =
+	let strImgExtn = 
 		strImagePath
 			.substring(strImagePath.lastIndexOf('/') + 1)
 			.split('?')[0]
 			.split('.')
 			.pop()
 			.split('#')[0] || 'png'
-
 	// However, pre-encoded images can be whatever mime-type they want (and good for them!)
 	if (strImageData && /image\/(\w+);/.exec(strImageData) && /image\/(\w+);/.exec(strImageData).length > 0) {
 		strImgExtn = /image\/(\w+);/.exec(strImageData)[1]
 	} else if (strImageData && strImageData.toLowerCase().indexOf('image/svg+xml') > -1) {
 		strImgExtn = 'svg'
+	}
+	if (opt.extension) {
+		strImgExtn = opt.extension
 	}
 
 	// STEP 2: Set type/path
@@ -478,6 +480,9 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 	// FIXME: 20190707
 	//strType = strData ? strData.split(';')[0].split('/')[0] : strType
 	strExtn = strData ? strData.split(';')[0].split('/')[1] : strPath.split('.').pop()
+	if (opt.extension) {
+		strExtn = opt.extension
+	}
 
 	// STEP 2: Set type, media
 	slideData.mtype = strType
@@ -506,12 +511,12 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 
 		// B: Add preview/overlay image
 		target.relsMedia.push({
-			path: 'preencoded.png',
-			data: IMG_PLAYBTN,
-			type: 'image/png',
-			extn: 'png',
+			path: opt.thumbnail.link,
+			data: '',
+			type: 'image/' + opt.thumbnail.extension,
+			extn: opt.thumbnail.extension,
 			rId: intRels + 2,
-			Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.png',
+			Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
 		})
 	} else {
 		/* NOTE: Audio/Video files consume *TWO* rId's:
@@ -539,15 +544,14 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 			rId: intRels + 1,
 			Target: '../media/media-' + target.number + '-' + (target.relsMedia.length + 0) + '.' + strExtn,
 		})
-
 		// C: Add preview/overlay image
 		target.relsMedia.push({
-			data: IMG_PLAYBTN,
-			path: 'preencoded.png',
-			type: 'image/png',
-			extn: 'png',
+			data: '',
+			path: opt.thumbnail.link,
+			type: 'image/' + opt.thumbnail.extension,
+			extn: opt.thumbnail.extension,
 			rId: intRels + 2,
-			Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.png',
+			Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
 		})
 	}
 

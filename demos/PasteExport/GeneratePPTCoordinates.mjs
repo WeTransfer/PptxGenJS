@@ -365,7 +365,27 @@ export const getAssetCoordinates = (
 	asset,
 ) => {
 	// determine if asset is image or OEmbed 
-	const assetSize = asset.type === 'Image' ? asset.content.size : asset.content.photo.size;
+	let assetSize 
+	switch(asset.type) {
+		case 'Image':
+			assetSize = asset.content.size;
+			break;
+		case 'OEmbed':
+			switch (asset.content.type) {
+				case 'Photo':
+					assetSize = asset.content.photo.size;
+					break;
+				case 'Video':
+					assetSize = asset.content.size;
+					break;
+				default:
+					break;
+			}
+			break;
+		case 'Video':
+			assetSize = asset.transcodings[0].content.size;
+			break;
+	}
 	const assetContainerCoords = getAssetContainerCoordinates(assetContainer, hasBleed);
 	const assetDimensions = fitToContainer({source: assetSize, target: { height: assetContainerCoords.h, width: assetContainerCoords.w }});
 	const x = assetContainerCoords.x + (assetContainerCoords.w - assetDimensions.width) / 2;
