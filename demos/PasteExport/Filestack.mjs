@@ -1,9 +1,18 @@
+const knownExtensions = [
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'svg',
+    'mp4',
+    'mov',
+];
+
 export const createSignedFilestackURL = (policy, url) => {
-    return `${url}?policy=${policy.policy}` + `&signature=${policy.signature}`;
+        return `${url}?policy=${policy.policy}` + `&signature=${policy.signature}`;
   };
   
 export const getExtensionFromMimetype = (mimetype) => {
-    console.log('getExtensionFromMimetype, ', mimetype)
     switch (mimetype) {
         case 'image/jpeg':
             return 'jpg';
@@ -15,5 +24,8 @@ export const getExtensionFromMimetype = (mimetype) => {
 }
 
 export const getExtensionFromURL = (url) => {
-    return url.split('.').pop()
+    const extension = url.split('.').pop().toLowerCase();
+    return knownExtensions.includes(extension)
+        ? extension
+        : 'unknown';
 }

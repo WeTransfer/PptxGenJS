@@ -365,7 +365,7 @@ export function addImageDefinition(target: ISlide, opt: IImageOpts) {
 		strImgExtn = 'svg'
 	}
 	if (opt.extension) {
-		strImgExtn = opt.extension
+		strImgExtn = opt.extension.toLowerCase();
 	}
 
 	// STEP 2: Set type/path
