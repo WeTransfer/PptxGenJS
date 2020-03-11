@@ -1,4 +1,5 @@
 import { colorToHex } from './ColorAnalysis.mjs';
+import { createSignedFilestackURL, getExtensionFromMimetype, getExtensionFromURL } from './Filestack.mjs';
 import { fitToContainer, getDisplayBleedProps, gridVariables} from './BentoFunctions.mjs';
 
 // standard margins on slides for layouts that don't bleed to the edge
@@ -210,6 +211,8 @@ const getTextBlockProperties = (textContentBlock) => {
 	return {
 	  ...PPTOptions,
 	  color: textColor != null ? textColor : null,
+	  align: textOptions.align,
+	  valign: textOptions.valign,
 	};
   };
 
@@ -398,10 +401,94 @@ export const getAssetCoordinates = (
 	};
 };
 
+export const getAssetOptions = (presentation, container, slide, layoutMode, policy) => {
+	const asset = slide.assets[0];
+	if (!asset) {
+		return {
+			assetType: null,
+			assetOptions: null
+		};
+	}
+	let assetURL = null;
+	let assetCoordinates = null;
+	let assetOptions = null;
+	const hasBleed = layoutMode !== 'Tell';
+	const isIntro = layoutMode === 'Intro';
+	assetCoordinates = isIntro
+		? getAssetContainerCoordinates(container.assetContainer, hasBleed)
+		: getAssetCoordinates(container.assetContainer, hasBleed, asset);
+	switch (asset.type) {
+	case 'Image': {
+		assetURL = createSignedFilestackURL(policy, asset.content.metadata.url);
+		assetOptions = {
+			...assetCoordinates,
+			path: assetURL,
+			type: isIntro ? 'cover' : 'contain',
+			extension: getExtensionFromMimetype(asset.content.metadata.mimetype),
+		};
+		return {assetType: 'image', assetOptions};
+	}
+	case 'OEmbed':
+		switch (asset.content.type) {
+			case 'Photo': {
+				assetURL = asset.content.photo.url;
+				assetOptions = {
+					...assetCoordinates,
+					path: assetURL,
+					extension: getExtensionFromURL(asset.content.photo.url),
+					type: isIntro ? 'cover' : 'contain',
+				};
+				return {assetType: 'image', assetOptions};
+			}
+			case 'Video': {
+				assetURL = asset.sourceURL;
+				assetOptions = {
+					...assetCoordinates,
+					link: assetURL,
+					type: 'online',
+					thumbnail: {
+						link: createSignedFilestackURL(policy, asset.content.metadata.thumbnail.url),
+						extension: getExtensionFromURL(asset.content.metadata.thumbnail.url),
+				},
+				};
+				return {assetType: 'media', assetOptions};
+			}
+			default:
+				assetOptions = {
+					...getAssetContainerCoordinates(container.assetContainer, hasBleed),
+					shape: presentation.ShapeType.rectangle,
+				}
+				return {assetType: 'unsupported', assetOptions};
+		}
+	case 'Video': {
+		assetURL = createSignedFilestackURL(policy, asset.transcodings[0].content.metadata.url);
+		assetOptions = {
+			...assetCoordinates,
+			path: assetURL,
+			extension: getExtensionFromMimetype(asset.transcodings[0].content.metadata.mimetype),
+			thumbnail: {
+				link: createSignedFilestackURL(policy, asset.thumbnail.metadata.url),
+				extension: getExtensionFromMimetype(asset.thumbnail.metadata.mimetype),
+			},
+			type: 'video',
+		};
+		return {assetType: 'media', assetOptions};
+	}
+	default:
+		return null;
+	}
+}
+
 export const getTextOptions = (
 	layoutMode,
 	container,
 ) => {
+	if (!container.text.textBody.hasText()) {
+		return {
+			textBlocks: null,
+			textOptions: null,
+		}
+	}
 	const textBlockProperties = getTextBlockProperties(container.text);
 	// inset should be 1em
 	const inset = getcalculatedFontSize(slideSize, layoutMode) / dpi;
@@ -409,7 +496,7 @@ export const getTextOptions = (
 		...textBlockProperties,
 		inset: Math.round(inset * 100) / 100,
 	};
-	// get set of text blocks out of draft raw 
+	// get set of text blocks from contentState
 	const blockMap = container.text.textBody.getBlockMap();
 	// create an array to store the data and styling for each text block
 	const textBlocks = [];

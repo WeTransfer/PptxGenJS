@@ -333,7 +333,6 @@ export function addImageDefinition(target: ISlide, opt: IImageOpts) {
 	let strImageData = opt.data || ''
 	let strImagePath = opt.path || ''
 	let imageRelId = getNewRelId(target)
-
 	// REALITY-CHECK:
 	if (!strImagePath && !strImageData) {
 		console.error(`ERROR: addImage() requires either 'data' or 'path' parameter!`)
@@ -465,7 +464,6 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 	let slideData: ISlideObject = {
 		type: SLIDE_OBJECT_TYPES.media,
 	}
-
 	// STEP 1: REALITY-CHECK
 	if (!strPath && !strData && strType !== 'online') {
 		throw new Error("addMedia() error: either 'data' or 'path' are required!")
@@ -544,15 +542,18 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 			rId: intRels + 1,
 			Target: '../media/media-' + target.number + '-' + (target.relsMedia.length + 0) + '.' + strExtn,
 		})
+
 		// C: Add preview/overlay image
-		target.relsMedia.push({
-			data: '',
-			path: opt.thumbnail.link,
-			type: 'image/' + opt.thumbnail.extension,
-			extn: opt.thumbnail.extension,
-			rId: intRels + 2,
-			Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
-		})
+		if (opt.thumbnail) {
+			target.relsMedia.push({
+				data: '',
+				path: opt.thumbnail.link,
+				type: 'image/' + opt.thumbnail.extension,
+				extn: opt.thumbnail.extension,
+				rId: intRels + 2,
+				Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
+			})
+		}
 	}
 
 	// LAST

@@ -1,6 +1,5 @@
-import { createSignedFilestackURL, getExtensionFromMimetype, getExtensionFromURL } from './Filestack.mjs';
-import { getAssetContainerCoordinates, getAssetCoordinates, getTextOptions } from './GeneratePPTCoordinates.mjs';
-import { fromSlideViewModel, getBackGroundColor, getLayoutMode, hasText } from './fromSlideViewModel.mjs';
+import { getAssetOptions, getTextOptions } from './GeneratePPTCoordinates.mjs';
+import { fromSlideViewModel, getBackGroundColor, getLayoutMode } from './fromSlideViewModel.mjs';
 import pptxgen from '../../dist/pptxgen.cjs.js';
 import pasteSchema from './json/PasteSchema.json';
 import policySchema from './json/PastePolicy.json';
@@ -19,86 +18,41 @@ const genSlides_Paste = (pptx) => {
     pasteSchema.slides.forEach(slide => {
         const bentoSchema = fromSlideViewModel(slide);
         const pptSlide = pptx.addSlide();
-        const backgroundColor = getBackGroundColor(slide); 
-        pptSlide.bkgd = backgroundColor;
         const layoutMode = getLayoutMode(slide);
-        const asset = slide.assets[0];
+        pptSlide.bkgd = getBackGroundColor(slide); ;
         bentoSchema.containers.forEach(container => {
-            if (asset != null) {
-              let assetURL = null;
-              let assetCoordinates = null;
-              const hasBleed = layoutMode !== 'Tell';
-              const isIntro = layoutMode === 'Intro';
-              assetCoordinates = isIntro
-                ? getAssetContainerCoordinates(container.assetContainer, hasBleed)
-                : getAssetCoordinates(container.assetContainer, hasBleed, asset);
-              switch (asset.type) {
-                case 'Image': {
-                  assetURL = createSignedFilestackURL(policy, asset.content.metadata.url);
-                  const imageOptions = {
-                    ...assetCoordinates,
-                    path: assetURL,
-                    type: isIntro ? 'cover' : 'contain',
-                    extension: getExtensionFromMimetype(asset.content.metadata.mimetype),
-                  };
-                  pptSlide.addImage(imageOptions);
+            const {
+              assetType,
+              assetOptions
+            } =
+              getAssetOptions(
+                pptx,
+                container,
+                slide,
+                layoutMode,
+                policy
+              );
+            if (assetOptions !== null ) {
+              switch (assetType) {
+                case 'image':
+                  pptSlide.addImage(assetOptions);
                   break;
-                }
-                case 'OEmbed':
-                  switch (asset.content.type) {
-                    case 'Photo': {
-                      assetURL = asset.content.photo.url;
-                      const imageOptions = {
-                        ...assetCoordinates,
-                        path: assetURL,
-                        extension: getExtensionFromURL(asset.content.photo.url),
-                        type: isIntro ? 'cover' : 'contain',
-                      };
-                      pptSlide.addImage(imageOptions);
-                      break;
-                    }
-                    case 'Video': {
-                      assetURL = asset.sourceURL;
-                      const videoOptions = {
-                        ...assetCoordinates,
-                        link: assetURL,
-                        type: 'online',
-                        thumbnail: {
-                          link: createSignedFilestackURL(policy, asset.content.metadata.thumbnail.url),
-                          extension: getExtensionFromURL(asset.content.metadata.thumbnail.url),
-                        },
-                      };
-                      pptSlide.addMedia(videoOptions);
-                      break;
-                    }
-                    default:
-                      break;
-                  }
+                case 'media':
+                  pptSlide.addMedia(assetOptions);
                   break;
-                case 'Video': {
-                  assetURL = createSignedFilestackURL(policy, asset.transcodings[0].content.metadata.url);
-                  const videoOptions = {
-                    ...assetCoordinates,
-                    path: assetURL,
-                    extension: getExtensionFromMimetype(asset.transcodings[0].content.metadata.mimetype),
-                    thumbnail: {
-                      link: createSignedFilestackURL(policy, asset.thumbnail.metadata.url),
-                      extension: getExtensionFromMimetype(asset.thumbnail.metadata.mimetype),
-                    },
-                    type: 'video',
-                  };
-                  pptSlide.addMedia(videoOptions);
-                  break;
-                }
-                default:
+                case 'unspported':
+                  pptSlide.addText('Embed type not supported', assetOptions);
                   break;
               }
             }
-            if (hasText(slide)) {
-              const { textBlocks, textOptions } = getTextOptions(
-                layoutMode,
-                container,
-              );
+            const {
+              textBlocks,
+              textOptions
+            } = getTextOptions(
+              layoutMode,
+              container,
+            );
+            if (textOptions != null) {
               pptSlide.addText(textBlocks, textOptions);
             }
         });

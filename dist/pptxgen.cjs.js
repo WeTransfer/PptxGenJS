@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-03-11T14:14:02.158Z */
+/* PptxGenJS 3.2.0-beta @ 2020-03-11T16:31:21.096Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -3230,7 +3230,7 @@ function addImageDefinition(target, opt) {
         strImgExtn = 'svg';
     }
     if (opt.extension) {
-        strImgExtn = opt.extension;
+        strImgExtn = opt.extension.toLowerCase();
     }
     // STEP 2: Set type/path
     newObject.type = 'image';
@@ -3398,14 +3398,16 @@ function addMediaDefinition(target, opt) {
             Target: '../media/media-' + target.number + '-' + (target.relsMedia.length + 0) + '.' + strExtn,
         });
         // C: Add preview/overlay image
-        target.relsMedia.push({
-            data: '',
-            path: opt.thumbnail.link,
-            type: 'image/' + opt.thumbnail.extension,
-            extn: opt.thumbnail.extension,
-            rId: intRels + 2,
-            Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
-        });
+        if (opt.thumbnail) {
+            target.relsMedia.push({
+                data: '',
+                path: opt.thumbnail.link,
+                type: 'image/' + opt.thumbnail.extension,
+                extn: opt.thumbnail.extension,
+                rId: intRels + 2,
+                Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
+            });
+        }
     }
     // LAST
     target.data.push(slideData);

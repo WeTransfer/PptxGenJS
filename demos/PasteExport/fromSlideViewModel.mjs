@@ -4,10 +4,6 @@ import Editor from 'draft-js';
 
 const White = '#FFFFFF';
 
-export const hasText = (slide) => {
-  return Editor.convertFromRaw(slide.body).hasText();
-}
-
 export const getTextAssetPosition = (slide) => {
 
     const textPositionCustomization = slide.layoutCustomizations.find((c) => 'TextAssetPosition' === c.type)
