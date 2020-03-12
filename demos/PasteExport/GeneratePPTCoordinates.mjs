@@ -3,7 +3,7 @@ import { createSignedFilestackURL, getExtensionFromMimetype, getExtensionFromURL
 import { fitToContainer, getDisplayBleedProps, gridVariables} from './BentoFunctions.mjs';
 
 const Gray500 = '#82827E'; 
-const UnsupportedBackgroundColor = withAlpha(Gray500, 0.9);
+const GreyBackgroundColor = withAlpha(Gray500, 0.9);
 
 // standard margins on slides for layouts that don't bleed to the edge
 const ArtboardMargins = {
@@ -403,7 +403,13 @@ export const getAssetCoordinates = (
 	};
 };
 
-export const getAssetOptions = (presentation, container, slide, layoutMode, policy) => {
+export const getAssetOptions = (
+	presentation,
+	container,
+	slide,
+	layoutMode,
+	policy
+) => {
 	const asset = slide.assets[0];
 	if (!asset) {
 		return {
@@ -464,7 +470,7 @@ export const getAssetOptions = (presentation, container, slide, layoutMode, poli
 				assetOptions = {
 					...getAssetContainerCoordinates(container.assetContainer, hasBleed),
 					shape: presentation.ShapeType.rect,
-					fill: UnsupportedBackgroundColor,
+					fill: GreyBackgroundColor,
 					align: 'center',
 					font: textBlockStyle.fontFace,
 					fontSize: textBlockStyle.fontSize,
@@ -487,6 +493,20 @@ export const getAssetOptions = (presentation, container, slide, layoutMode, poli
 	}
 	default:
 		return null;
+	}
+}
+
+export const getOverlayOptions = (
+	container,
+	backgroundColor,
+) => {
+	// add overlay shape to darken image and make text visible
+	// opacity: 0.65,
+	// filter: 'brightness(0.9)',
+	const overlayCoordinates = getAssetContainerCoordinates(container.assetContainer, true);
+	return {
+		...overlayCoordinates,
+		fill: {type:'solid', color: backgroundColor, alpha:60}
 	}
 }
 

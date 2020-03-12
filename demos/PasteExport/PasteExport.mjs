@@ -1,4 +1,4 @@
-import { getAssetOptions, getTextOptions } from './GeneratePPTCoordinates.mjs';
+import { getAssetOptions, getOverlayOptions, getTextOptions } from './GeneratePPTCoordinates.mjs';
 import { fromSlideViewModel, getBackGroundColor, getLayoutMode } from './fromSlideViewModel.mjs';
 import pptxgen from '../../dist/pptxgen.cjs.js';
 import pasteSchema from './json/PasteSchema.json';
@@ -19,7 +19,8 @@ const genSlides_Paste = (pptx) => {
         const bentoSchema = fromSlideViewModel(slide);
         const pptSlide = pptx.addSlide();
         const layoutMode = getLayoutMode(slide);
-        pptSlide.bkgd = getBackGroundColor(slide); ;
+        const backgroundColor = getBackGroundColor(slide);
+        pptSlide.bkgd = backgroundColor;
         bentoSchema.containers.forEach(container => {
             const {
               assetType,
@@ -52,6 +53,15 @@ const genSlides_Paste = (pptx) => {
               layoutMode,
               container,
             );
+            if (textOptions != null && assetOptions != null && layoutMode === 'Intro') {
+              // if there is an asset and text in Intro mode,
+              // add a transparent shape over the asset
+              const overlayOptions = getOverlayOptions(
+                container,
+                backgroundColor,
+              )
+              pptSlide.addShape(pptx.ShapeType.rect, overlayOptions);
+            }
             if (textOptions != null) {
               pptSlide.addText(textBlocks, textOptions);
             }
