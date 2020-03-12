@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-03-11T16:31:21.096Z */
+/* PptxGenJS 3.2.0-beta @ 2020-03-12T20:54:34.672Z */
 'use strict';
 
 var JSZip = require('jszip');

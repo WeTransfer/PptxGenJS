@@ -111,3 +111,15 @@ export const colorToHex = (rgb) => {
     const color = tinycolor(rgb);
     return color.toHex()
 };
+
+export const withAlpha = (color, alpha) => {
+  const newColor = tinycolor(color);
+
+  if (!newColor.isValid()) {
+    throw new Error(`Unexpected color string format: ${color}`);
+  }
+
+  newColor.setAlpha(alpha);
+
+  return newColor.toHex();
+};

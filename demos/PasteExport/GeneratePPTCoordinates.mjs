@@ -1,6 +1,9 @@
-import { colorToHex } from './ColorAnalysis.mjs';
+import { colorToHex, withAlpha } from './ColorAnalysis.mjs';
 import { createSignedFilestackURL, getExtensionFromMimetype, getExtensionFromURL } from './Filestack.mjs';
 import { fitToContainer, getDisplayBleedProps, gridVariables} from './BentoFunctions.mjs';
+
+const Gray500 = '#82827E'; 
+const UnsupportedBackgroundColor = withAlpha(Gray500, 0.9);
 
 // standard margins on slides for layouts that don't bleed to the edge
 const ArtboardMargins = {
@@ -378,10 +381,9 @@ export const getAssetCoordinates = (
 				case 'Photo':
 					assetSize = asset.content.photo.size;
 					break;
-				case 'Video':
-					assetSize = asset.content.size;
-					break;
 				default:
+					// for videos and other embeds
+					assetSize = asset.content
 					break;
 			}
 			break;
@@ -454,9 +456,18 @@ export const getAssetOptions = (presentation, container, slide, layoutMode, poli
 				return {assetType: 'media', assetOptions};
 			}
 			default:
+				const textBlockStyle = calcPPTGetBlockStyle(
+					'header-one',
+					slideSize,
+					layoutMode,
+				);
 				assetOptions = {
 					...getAssetContainerCoordinates(container.assetContainer, hasBleed),
-					shape: presentation.ShapeType.rectangle,
+					shape: presentation.ShapeType.rect,
+					fill: UnsupportedBackgroundColor,
+					align: 'center',
+					font: textBlockStyle.fontFace,
+					fontSize: textBlockStyle.fontSize,
 				}
 				return {assetType: 'unsupported', assetOptions};
 		}
@@ -517,14 +528,6 @@ export const getTextOptions = (
 				currentMetadata = charMetadata;
 				isFirstRun = true;
 			}
-			// There's a bug in PptGenJS where you can either have:
-			// 1) Correct line spacing by specifying an alignment value
-			// or
-			// 2) ineline styling but with the wrong line spacing.
-			// IF you specify multiple inline styles, they will be on different lines when
-			// alignment is specified, and if you don't specify alignment, then the
-			// line spacing will be way out of wack.
-			// if there is inline stlying, create ranges inside block
 			if (charMetadata.getStyle() !== currentMetadata.getStyle()) {
 				// create text styling range leading up to this style change
 				inlineStyles = getInlineStyles(currentMetadata);
@@ -552,7 +555,7 @@ export const getTextOptions = (
 		inlineOptions = {
 			...inlineStyles,
 			...calcBlockStyle,
-			break: true,
+			break: truncateSync,
 			fontFace: blockStyle.fontFace,
 			fontSize: blockStyle.fontSize,
 		};

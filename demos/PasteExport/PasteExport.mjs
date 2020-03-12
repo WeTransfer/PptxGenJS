@@ -40,7 +40,7 @@ const genSlides_Paste = (pptx) => {
                 case 'media':
                   pptSlide.addMedia(assetOptions);
                   break;
-                case 'unspported':
+                case 'unsupported':
                   pptSlide.addText('Embed type not supported', assetOptions);
                   break;
               }
