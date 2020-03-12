@@ -555,7 +555,7 @@ export const getTextOptions = (
 		inlineOptions = {
 			...inlineStyles,
 			...calcBlockStyle,
-			break: truncateSync,
+			break: true,
 			fontFace: blockStyle.fontFace,
 			fontSize: blockStyle.fontSize,
 		};
