@@ -1,4 +1,5 @@
-import { exportSlides} from "./PasteExport.mjs";
+import { exportSlides} from "./PasteExport";
+
 let verboseMode = true;
 
 if (verboseMode) console.log(`\n-----==~==[ STARTING Paste Schema Export ]==~==-----\n`);

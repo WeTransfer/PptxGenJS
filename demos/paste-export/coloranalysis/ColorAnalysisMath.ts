@@ -2,30 +2,31 @@
 
 // This is a copy of the math.js file from lambda/ImageAnalysis on Studio
 
+export type Point = { x: number; y: number };
 
-export const clamp = (x) => {
+export const clamp = (x: number): number => {
   return Math.max(0, Math.min(1, x));
 };
 
-export const lerp = (a, b, u) => {
+export const lerp = (a: number, b: number, u: number): number => {
   return a * (1 - u) + b * u;
 };
 
 export const bilerp = (
-  x1y1,
-  x2y1,
-  x1y2,
-  x2y2,
-  x,
-  y,
-) => {
+  x1y1: number,
+  x2y1: number,
+  x1y2: number,
+  x2y2: number,
+  x: number,
+  y: number,
+): number => {
   return lerp(lerp(x1y1, x2y1, x), lerp(x1y2, x2y2, x), y);
 };
 
 // Given an angle in degrees and a table of values meant to be evenly
 // distributed around a circle (e.g. a color wheel), return the linearly
 // interpolated value at that angle.
-export const piecewiseLinearDeg = (table, a) => {
+export const piecewiseLinearDeg = (table: number[], a: number): number => {
   const normalized = ((a / 360) * table.length) % table.length;
   const i0 = Math.floor(normalized);
   const i1 = (i0 + 1) % table.length;
@@ -33,8 +34,8 @@ export const piecewiseLinearDeg = (table, a) => {
   return lerp(table[i0], table[i1], u);
 };
 
-export const piecewiseLinearTest = (pts, x, y) => {
-  const det = (a, b, x0, y0) => {
+export const piecewiseLinearTest = (pts: Point[], x, y): boolean => {
+  const det = (a: Point, b: Point, x0: number, y0: number) => {
     return (b.x - a.x) * (y0 - a.y) - (b.y - a.y) * (x0 - a.x);
   };
 
@@ -59,7 +60,7 @@ export const piecewiseLinearTest = (pts, x, y) => {
 // Given a table of values, return the linearly interpolated value
 // of a given point. Assumes points in the range [0,1]. First column
 // defines size of all columns.
-export const linearTableLookup = (table, x, y) => {
+export const linearTableLookup = (table: number[][], x: number, y: number) => {
   x = clamp(x);
   y = clamp(y);
   // This 2 (rather than 1) comes up because we're finding which cell we're in.

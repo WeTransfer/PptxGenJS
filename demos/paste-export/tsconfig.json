@@ -2,8 +2,9 @@
   "compilerOptions": {
     "declaration": true,
     "declarationDir": "./out/defs",
+    "esModuleInterop": true,
     "lib": ["dom", "es2015", "es2017.object"],
-    "module": "es6",
+    "module": "commonjs",
     "noImplicitAny": false,
     "outDir": "./out",
     "sourceMap": true,

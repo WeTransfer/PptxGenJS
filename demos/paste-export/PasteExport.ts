@@ -1,8 +1,11 @@
-import { getAssetOptions, getOverlayOptions, getTextOptions } from './GeneratePPTCoordinates.mjs';
-import { fromSlideViewModel, getBackGroundColor, getLayoutMode } from './fromSlideViewModel.mjs';
+import * as Schema from './schema/Schema';
+import { fromSlideViewModel } from './layout/fromSlideViewModel';
+import { getAssetOptions, getOverlayOptions, getTextOptions } from './layout/GeneratePPTCoordinates';
+import { getBackGroundColor, getLayoutMode } from './viewmodel/SlideViewModel';
 import pptxgen from '../../dist/pptxgen.cjs.js';
 import pasteSchema from './json/PasteSchema.json';
-import policySchema from './json/PastePolicy.json';
+import policySchema  from './json/PastePolicy.json';
+import { Slide } from './schema/Schema';
 
 const getTimestamp = () => {
 	var dateNow = new Date();
@@ -13,9 +16,10 @@ const getTimestamp = () => {
 	return dateNow.getFullYear() +''+ (dateMM<=9 ? '0' + dateMM : dateMM) +''+ (dateDD<=9 ? '0' + dateDD : dateDD) + (h<=9 ? '0' + h : h) + (m<=9 ? '0' + m : m);
 }
 
-const genSlides_Paste = (pptx) => {
-    const policy = policySchema;
-    pasteSchema.slides.forEach(slide => {
+const genSlides_Paste = (pptx: any) => {
+    const deck = pasteSchema as Schema.PresentationSnapshot
+    const policy = policySchema
+    deck.slides.forEach(slide => {
         const bentoSchema = fromSlideViewModel(slide);
         const pptSlide = pptx.addSlide();
         const layoutMode = getLayoutMode(slide);
@@ -25,7 +29,7 @@ const genSlides_Paste = (pptx) => {
             const {
               assetType,
               assetOptions
-            } =
+            } = 
               getAssetOptions(
                 pptx,
                 container,
@@ -69,12 +73,12 @@ const genSlides_Paste = (pptx) => {
     })
 }
 
-export const exportSlides = (type) => {
+export const exportSlides = () => {
 	// STEP 1: Instantiate new PptxGenJS object
 	var pptx;
 	pptx = new pptxgen();
 
 	genSlides_Paste(pptx);
 	// Export Presentation
-	return pptx.writeFile('PptxGenJS_Demo_Node_'+type+'_'+getTimestamp());
+	return pptx.writeFile('PptxGenJS_Demo_Node_'+getTimestamp());
 }

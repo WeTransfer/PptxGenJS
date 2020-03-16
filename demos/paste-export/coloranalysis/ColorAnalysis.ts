@@ -1,4 +1,4 @@
-import * as math from './ColorAnalysisMath.mjs';
+import * as math from './ColorAnalysisMath';
 import tinycolor from 'tinycolor2';
 
 const hueTable = [/*   0deg */ 0, -10, -10, 20, 20, 10, /* 180deg */ 10, 10, 10, -10, -20, 10];
@@ -92,7 +92,7 @@ const text = color => {
     return tinycolor(hsv);
 };
 
-export const colorAnalysis = (color) => {
+export const colorAnalysis = (color: any) => {
     const commonColor = tinycolor(color);
   
     const backgroundColor = commonColor;
@@ -107,12 +107,12 @@ export const colorAnalysis = (color) => {
 };
 
 // convert rgb and HexStrings to Hex colors (w/o '#')
-export const colorToHex = (rgb) => {
+export const colorToHex = (rgb: string) => {
     const color = tinycolor(rgb);
     return color.toHex()
 };
 
-export const withAlpha = (color, alpha) => {
+export const withAlpha = (color: string, alpha: number) => {
   const newColor = tinycolor(color);
 
   if (!newColor.isValid()) {

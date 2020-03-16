@@ -1,6 +1,10 @@
-import { colorToHex, withAlpha } from './ColorAnalysis.mjs';
-import { createSignedFilestackURL, getExtensionFromMimetype, getExtensionFromURL } from './Filestack.mjs';
-import { fitToContainer, getDisplayBleedProps, gridVariables} from './BentoFunctions.mjs';
+import * as Schema from '../schema/Schema';
+import { colorToHex, withAlpha } from '../coloranalysis/ColorAnalysis';
+import { createSignedFilestackURL, getExtensionFromMimetype, getExtensionFromURL } from '../filestack/Filestack';
+import { fitToContainer, getDisplayBleedProps, gridVariables} from '../layout/BentoFunctions';
+import { TextContentBlock } from '../schema/Types';
+
+type BulletType = boolean | {type: 'number'}
 
 const Gray500 = '#82827E'; 
 const GreyBackgroundColor = withAlpha(Gray500, 0.9);
@@ -182,12 +186,12 @@ const TEXT_BASE_FONT_SIZE_TELL = 28;
 const TEXT_BASE_FONT_SIZE_SHOW = 20;
 const BASE_LAYOUT_WIDTH = 1440;
 
-const percentStringToNumber = (percentString) => {
+const percentStringToNumber = (percentString: string) => {
 	return parseFloat(percentString) / 100;
 }
 
 // converts Bento schema coordinates to PowerPoint slide coordinates
-const getPPTCoordinates = (block) => {
+const getPPTCoordinates = (block: any) => {
 	const calcGridVariables = gridVariables(block);
 	const gridX = calcGridVariables['--grid-x'];
 	const gridY = calcGridVariables['--grid-y'];
@@ -207,7 +211,7 @@ const getPPTCoordinates = (block) => {
 	};
 };
 
-const getTextBlockProperties = (textContentBlock) => {
+const getTextBlockProperties = (textContentBlock: TextContentBlock) => {
 	const PPTOptions = getPPTCoordinates(textContentBlock);
 	const textOptions = textContentBlock.textOptions;
 	const textColor = textOptions.color ? colorToHex(textOptions.color) : null;
@@ -242,7 +246,10 @@ const layoutGetCalculatedFontSize = (
 	return (containerSize.width / baseLayoutWidth) * baseFontSize;
 };
 
-const getcalculatedFontSize = (slideSize, layoutMode) => {
+const getcalculatedFontSize = (
+    slideSize: Schema.Size,
+    layoutMode: Schema.LayoutMode,
+) => {
 	const adjustedFontSize = getAdjustedBaseFontSize(TEXT_BASE_FONT_SIZE, layoutMode);
 	// these functions return px.  Multiply by 4/3 to get pt, which PptxGenJS uses.
 	return (
@@ -277,7 +284,7 @@ const calcPPTGetBlockStyle = (
 	const baseFontSize = getcalculatedFontSize(slideSize, layoutMode);
 	let BlockType;
 	let fontSize = baseFontSize;
-	let bulletType = false;
+	let bulletType: BulletType = false;
 	
 	switch (blockType) {
 		case 'header-one':
