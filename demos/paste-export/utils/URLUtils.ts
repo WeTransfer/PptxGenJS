@@ -1,3 +1,5 @@
+/* */
+
 const knownExtensions = [
     'jpg',
     'jpeg',
@@ -8,10 +10,6 @@ const knownExtensions = [
     'mov',
 ];
 
-export const createSignedFilestackURL = (policy, url) => {
-        return `${url}?policy=${policy.policy}` + `&signature=${policy.signature}`;
-  };
-  
 export const getExtensionFromMimetype = (mimetype) => {
     switch (mimetype) {
         case 'image/jpeg':
@@ -22,6 +20,7 @@ export const getExtensionFromMimetype = (mimetype) => {
             return 'mp4';
     }
 }
+
 
 export const getExtensionFromURL = (url) => {
     const extension = url.split('.').pop().toLowerCase();

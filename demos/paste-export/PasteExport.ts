@@ -1,11 +1,22 @@
-import * as Schema from './schema/Schema';
+import * as Filestack from './utils/Filestack';
+import * as Schema from './types/Schema';
+import { colorToHex } from './utils/ColorAnalysis';
+import { filterTextContentBlock } from './layout/SlideLayout'; 
 import { fromSlideViewModel } from './layout/fromSlideViewModel';
-import { getAssetOptions, getOverlayOptions, getTextOptions } from './layout/GeneratePPTCoordinates';
-import { getBackGroundColor, getLayoutMode } from './viewmodel/SlideViewModel';
+import { 
+  artBoardDimensions,
+  getAssetAreaShape,
+  getAssetOptions,
+  getOverlayOptions,
+  getPPTCoordinates,
+  getTextOptions
+} from './layout/GeneratePPTCoordinates';
 import pptxgen from '../../dist/pptxgen.cjs.js';
 import pasteSchema from './json/PasteSchema.json';
 import policySchema  from './json/PastePolicy.json';
-import { Slide } from './schema/Schema';
+
+import SlideViewModel from './viewmodel/SlideViewModel';
+
 
 const getTimestamp = () => {
 	var dateNow = new Date();
@@ -18,22 +29,31 @@ const getTimestamp = () => {
 
 const genSlides_Paste = (pptx: any) => {
     const deck = pasteSchema as Schema.PresentationSnapshot
-    const policy = policySchema
+    const policy = policySchema as unknown as Filestack.Policy
     deck.slides.forEach(slide => {
-        const bentoSchema = fromSlideViewModel(slide);
+        const slideViewModel = new SlideViewModel(policy, slide)
+        let slideLayout = fromSlideViewModel(slideViewModel, null, null);
+        // remove empty text if viewing grid, or when not in edit mode and slide has assets
+        if (slideViewModel.numAssets() > 0) {
+          slideLayout = filterTextContentBlock(slideLayout, (content: Schema.TextContentBlock) =>
+            content.textBody.hasText(),
+          );
+        }
         const pptSlide = pptx.addSlide();
-        const layoutMode = getLayoutMode(slide);
-        const backgroundColor = getBackGroundColor(slide);
+        const layoutMode = slideViewModel.getLayoutMode(null);
+        const backgroundColor = colorToHex(slideViewModel.getColorPalette().background);
         pptSlide.bkgd = backgroundColor;
-        bentoSchema.containers.forEach(container => {
+        const slideCoordinates = getPPTCoordinates(artBoardDimensions, slideLayout.layoutOptions);
+        slideLayout.containers.forEach(container => {
             const {
               assetType,
               assetOptions
             } = 
               getAssetOptions(
                 pptx,
+                slideViewModel,
+                slideCoordinates,
                 container,
-                slide,
                 layoutMode,
                 policy
               );
@@ -62,6 +82,7 @@ const genSlides_Paste = (pptx: any) => {
               // add a transparent shape over the asset
               const overlayOptions = getOverlayOptions(
                 container,
+                slideCoordinates,
                 backgroundColor,
               )
               pptSlide.addShape(pptx.ShapeType.rect, overlayOptions);

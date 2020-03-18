@@ -1,8 +1,21 @@
-import * as Schema from '../schema/Schema';
-import { colorToHex, withAlpha } from '../coloranalysis/ColorAnalysis';
-import { createSignedFilestackURL, getExtensionFromMimetype, getExtensionFromURL } from '../filestack/Filestack';
-import { fitToContainer, getDisplayBleedProps, gridVariables} from '../layout/BentoFunctions';
-import { TextContentBlock } from '../schema/Types';
+import * as Schema from '../types/Schema';
+import { colorToHex, withAlpha } from '../utils/ColorAnalysis';
+import { createSignedFilestackURL } from '../utils/Filestack';
+import { getExtensionFromMimetype, getExtensionFromURL } from '../utils/URLUtils';
+import { fitToContainer } from '../utils/SizeUtils';
+import { gridVariables} from '../layout/SlideLayout';
+import { getDisplayBleedProps } from '../layout/DisplayBleed';
+import { Container, ContentBlock, TextContentBlock } from '../types/Schema';
+import { Coordinates, Dimensions } from '../types/types';
+import SlideViewModel from '../viewmodel/SlideViewModel';
+
+
+export interface PPTCoordinates {
+	x: number;
+	y: number;
+	w: number;
+	h: number; 
+}
 
 type BulletType = boolean | {type: 'number'}
 
@@ -29,11 +42,11 @@ const slideSize = {
 };
 
 // slide margins on Powerpoint slide in inches
-const artBoardDimensions = {
+export const artBoardDimensions = {
 	x: (presWidth * (1 - ArtboardMargins.width)) / 2,
 	y: (presHeight * (1 - ArtboardMargins.height)) / 2,
-	width: presWidth * ArtboardMargins.width,
-	height: presHeight * ArtboardMargins.height,
+	w: presWidth * ArtboardMargins.width,
+	h: presHeight * ArtboardMargins.height,
 };
 
 const BaseFontIntroSize = 42;
@@ -190,19 +203,20 @@ const percentStringToNumber = (percentString: string) => {
 	return parseFloat(percentString) / 100;
 }
 
-// converts Bento schema coordinates to PowerPoint slide coordinates
-const getPPTCoordinates = (block: any) => {
-	const calcGridVariables = gridVariables(block);
+// given a container in PowerPoint slide coordinates (inches)
+// converts a child's Bento layoutOptions coordinates to PowerPoint slide coordinates
+export const getPPTCoordinates = (parentCoordinates: PPTCoordinates, layoutOptions: Coordinates & Dimensions) => {
+	const calcGridVariables = gridVariables(layoutOptions);
 	const gridX = calcGridVariables['--grid-x'];
 	const gridY = calcGridVariables['--grid-y'];
-	const w = percentStringToNumber(calcGridVariables['--grid-width']) * artBoardDimensions.width;
-	const h = percentStringToNumber(calcGridVariables['--grid-height']) * artBoardDimensions.height;
+	const w = percentStringToNumber(calcGridVariables['--grid-width']) * parentCoordinates.w;
+	const h = percentStringToNumber(calcGridVariables['--grid-height']) * parentCoordinates.h;
 	const x = gridX.includes('calc')
-		? artBoardDimensions.x + (artBoardDimensions.width - w) / 2
-		: artBoardDimensions.x + percentStringToNumber(gridX) * artBoardDimensions.width;
+		? parentCoordinates.x + (parentCoordinates.w - w) / 2
+		: parentCoordinates.x + percentStringToNumber(gridX) * parentCoordinates.w;
 	const y = gridY.includes('calc')
-		? artBoardDimensions.y + (artBoardDimensions.height - h) / 2
-		: artBoardDimensions.y + percentStringToNumber(gridY) * artBoardDimensions.height;
+		? parentCoordinates.y + (parentCoordinates.h - h) / 2
+		: parentCoordinates.y + percentStringToNumber(gridY) * parentCoordinates.h;
 	return {
 		x,
 		y,
@@ -212,7 +226,7 @@ const getPPTCoordinates = (block: any) => {
 };
 
 const getTextBlockProperties = (textContentBlock: TextContentBlock) => {
-	const PPTOptions = getPPTCoordinates(textContentBlock);
+	const PPTOptions = getPPTCoordinates(artBoardDimensions, textContentBlock.layoutOptions);
 	const textOptions = textContentBlock.textOptions;
 	const textColor = textOptions.color ? colorToHex(textOptions.color) : null;
 	return {
@@ -351,31 +365,57 @@ const getInlineStyles = (rangeStyle) => {
 	};
 };
 
-export const getAssetContainerCoordinates = (assetContainer, hasBleed) => {
+export const getAssetContainerCoordinates = (
+	slideCoordinates: PPTCoordinates,
+	assetContainer: Container | ContentBlock,
+	hasBleed: boolean
+) => {
 	const displayBleedProps = getDisplayBleedProps(ArtboardMargins, assetContainer, hasBleed);
-	const calcAssetContainer = getPPTCoordinates(assetContainer);
+	const calcAssetContainer = getPPTCoordinates(slideCoordinates, assetContainer.layoutOptions);
 	return hasBleed
 		? {
 			x: Math.max(
-			0,
-			calcAssetContainer.x +
-				percentStringToNumber(displayBleedProps.left) * calcAssetContainer.w),
+				0,
+				calcAssetContainer.x +
+					percentStringToNumber(displayBleedProps.left) * calcAssetContainer.w),
 			y: Math.max(
-			0,
-			calcAssetContainer.y +
-				percentStringToNumber(displayBleedProps.top) * calcAssetContainer.h),
+				0,
+				calcAssetContainer.y +
+					percentStringToNumber(displayBleedProps.top) * calcAssetContainer.h),
 			h: Math.min(
-			calcAssetContainer.h * percentStringToNumber(displayBleedProps.height), presHeight),
+				calcAssetContainer.h * percentStringToNumber(displayBleedProps.height), presHeight),
 			w: Math.min(
-			calcAssetContainer.w * percentStringToNumber(displayBleedProps.width), presWidth),
+				calcAssetContainer.w * percentStringToNumber(displayBleedProps.width), presWidth),
 		}
 		: calcAssetContainer;
 };
 
+export const getAssetAreaShape = (
+	container,
+	slideCoordinates,
+	layoutMode,
+	backgroundColor,
+) => {
+	if (
+		container.childContainer == null ||
+		container.childContainer.contentBlocks.length == 0
+	) {
+		return {
+			assetType: null,
+			assetOptions: null
+		};
+	}
+	const assetContainer = container.childContainer;
+	const hasBleed = layoutMode !== 'Tell';
+	return {
+		...getAssetContainerCoordinates(slideCoordinates, assetContainer, hasBleed),
+		fill: {type:'solid', color: backgroundColor, alpha:60}
+	}
+}
+
 export const getAssetCoordinates = (
-	assetContainer, 
-	hasBleed, 
-	asset,
+	assetContainerCoords: PPTCoordinates,
+	asset: Schema.Asset,
 ) => {
 	// determine if asset is image or OEmbed 
 	let assetSize 
@@ -388,9 +428,12 @@ export const getAssetCoordinates = (
 				case 'Photo':
 					assetSize = asset.content.photo.size;
 					break;
+				case 'Video':
+					assetSize = asset.content.size;
+					break;
 				default:
-					// for videos and other embeds
-					assetSize = asset.content
+					// for other embeds
+					assetSize = null;
 					break;
 			}
 			break;
@@ -398,7 +441,6 @@ export const getAssetCoordinates = (
 			assetSize = asset.transcodings[0].content.size;
 			break;
 	}
-	const assetContainerCoords = getAssetContainerCoordinates(assetContainer, hasBleed);
 	const assetDimensions = fitToContainer({source: assetSize, target: { height: assetContainerCoords.h, width: assetContainerCoords.w }});
 	const x = assetContainerCoords.x + (assetContainerCoords.w - assetDimensions.width) / 2;
 	const y = assetContainerCoords.y + (assetContainerCoords.h - assetDimensions.height) / 2;
@@ -412,105 +454,115 @@ export const getAssetCoordinates = (
 
 export const getAssetOptions = (
 	presentation,
+	slide: SlideViewModel,
+	slideCoordinates,
 	container,
-	slide,
 	layoutMode,
 	policy
 ) => {
-	const asset = slide.assets[0];
-	if (!asset) {
+	const assetContainer = container.childContainer;
+	if (
+		assetContainer == null ||
+		assetContainer.contentBlocks.length == 0
+	) {
 		return {
 			assetType: null,
 			assetOptions: null
 		};
 	}
+	const assetContentBlock = assetContainer.contentBlocks[0];
+	const asset = assetContentBlock.content;
 	let assetURL = null;
 	let assetCoordinates = null;
 	let assetOptions = null;
-	const hasBleed = layoutMode !== 'Tell';
+	const hasBleed = layoutMode !== 'Tell' && !slide.hasShadow();
 	const isIntro = layoutMode === 'Intro';
+	const assetContainerCoordinates = getAssetContainerCoordinates(slideCoordinates, assetContainer, hasBleed)
 	assetCoordinates = isIntro
-		? getAssetContainerCoordinates(container.assetContainer, hasBleed)
-		: getAssetCoordinates(container.assetContainer, hasBleed, asset);
+		? assetContainerCoordinates
+		: getAssetCoordinates(assetContainerCoordinates, asset);
 	switch (asset.type) {
-	case 'Image': {
-		assetURL = createSignedFilestackURL(policy, asset.content.metadata.url);
-		assetOptions = {
-			...assetCoordinates,
-			path: assetURL,
-			type: isIntro ? 'cover' : 'contain',
-			extension: getExtensionFromMimetype(asset.content.metadata.mimetype),
-		};
-		return {assetType: 'image', assetOptions};
-	}
-	case 'OEmbed':
-		switch (asset.content.type) {
-			case 'Photo': {
-				assetURL = asset.content.photo.url;
-				assetOptions = {
-					...assetCoordinates,
-					path: assetURL,
-					extension: getExtensionFromURL(asset.content.photo.url),
-					type: isIntro ? 'cover' : 'contain',
-				};
-				return {assetType: 'image', assetOptions};
-			}
-			case 'Video': {
-				assetURL = asset.sourceURL;
-				assetOptions = {
-					...assetCoordinates,
-					link: assetURL,
-					type: 'online',
-					thumbnail: {
-						link: createSignedFilestackURL(policy, asset.content.metadata.thumbnail.url),
-						extension: getExtensionFromURL(asset.content.metadata.thumbnail.url),
-				},
-				};
-				return {assetType: 'media', assetOptions};
-			}
-			default:
-				const textBlockStyle = calcPPTGetBlockStyle(
-					'header-one',
-					slideSize,
-					layoutMode,
-				);
-				assetOptions = {
-					...getAssetContainerCoordinates(container.assetContainer, hasBleed),
-					shape: presentation.ShapeType.rect,
-					fill: GreyBackgroundColor,
-					align: 'center',
-					font: textBlockStyle.fontFace,
-					fontSize: textBlockStyle.fontSize,
-				}
-				return {assetType: 'unsupported', assetOptions};
+		case 'Image': {
+			assetURL = createSignedFilestackURL(policy, asset.content.metadata.url);
+			assetOptions = {
+				...assetCoordinates,
+				path: assetURL,
+				type: isIntro ? 'cover' : 'contain',
+				extension: getExtensionFromMimetype(asset.content.metadata.mimetype),
+			};
+			return {assetType: 'image', assetOptions};
 		}
-	case 'Video': {
-		assetURL = createSignedFilestackURL(policy, asset.transcodings[0].content.metadata.url);
-		assetOptions = {
-			...assetCoordinates,
-			path: assetURL,
-			extension: getExtensionFromMimetype(asset.transcodings[0].content.metadata.mimetype),
-			thumbnail: {
-				link: createSignedFilestackURL(policy, asset.thumbnail.metadata.url),
-				extension: getExtensionFromMimetype(asset.thumbnail.metadata.mimetype),
-			},
-			type: 'video',
-		};
-		return {assetType: 'media', assetOptions};
-	}
-	default:
-		return null;
+		case 'OEmbed':
+			switch (asset.content.type) {
+				case 'Photo': {
+					assetURL = asset.content.photo.url;
+					assetOptions = {
+						...assetCoordinates,
+						path: assetURL,
+						extension: getExtensionFromURL(asset.content.photo.url),
+						type: isIntro ? 'cover' : 'contain',
+					};
+					return {assetType: 'image', assetOptions};
+				}
+				case 'Video': {
+					assetURL = asset.sourceURL;
+					assetOptions = {
+						...assetCoordinates,
+						link: assetURL,
+						type: 'online',
+						thumbnail: {
+							link: createSignedFilestackURL(policy, asset.content.metadata.thumbnail.url),
+							extension: getExtensionFromURL(asset.content.metadata.thumbnail.url),
+					},
+					};
+					return {assetType: 'media', assetOptions};
+				}
+				default:
+					const textBlockStyle = calcPPTGetBlockStyle(
+						'header-one',
+						slideSize,
+						layoutMode,
+					);
+					assetOptions = {
+						...assetContainerCoordinates,
+						shape: presentation.ShapeType.rect,
+						fill: GreyBackgroundColor,
+						align: 'center',
+						font: textBlockStyle.fontFace,
+						fontSize: textBlockStyle.fontSize,
+					}
+					return {assetType: 'unsupported', assetOptions};
+			}
+		case 'Video': {
+			assetURL = createSignedFilestackURL(policy, asset.transcodings[0].content.metadata.url);
+			assetOptions = {
+				...assetCoordinates,
+				path: assetURL,
+				extension: getExtensionFromMimetype(asset.transcodings[0].content.metadata.mimetype),
+				thumbnail: {
+					link: createSignedFilestackURL(policy, asset.thumbnail.metadata.url),
+					extension: getExtensionFromMimetype(asset.thumbnail.metadata.mimetype),
+				},
+				type: 'video',
+			};
+			return {assetType: 'media', assetOptions};
+		}
+		default:
+			return null;
 	}
 }
 
 export const getOverlayOptions = (
-	container,
-	backgroundColor,
+	container: Container,
+	slideCoordinates: PPTCoordinates,
+	backgroundColor: string,
 ) => {
 	// add overlay shape to darken image and make text visible
-	// opacity: 0.65,
-	// filter: 'brightness(0.9)',
-	const overlayCoordinates = getAssetContainerCoordinates(container.assetContainer, true);
+	const assetContainer = container.childContainer;
+	if (assetContainer == null) {
+		return null;
+	}
+	const overlayCoordinates = getAssetContainerCoordinates(slideCoordinates, assetContainer, true);
 	return {
 		...overlayCoordinates,
 		fill: {type:'solid', color: backgroundColor, alpha:60}
@@ -521,13 +573,14 @@ export const getTextOptions = (
 	layoutMode,
 	container,
 ) => {
-	if (!container.text.textBody.hasText()) {
+	const textContextBlock = container.contentBlocks[0] as TextContentBlock;
+	if (!textContextBlock.textBody.hasText()) {
 		return {
 			textBlocks: null,
 			textOptions: null,
 		}
 	}
-	const textBlockProperties = getTextBlockProperties(container.text);
+	const textBlockProperties = getTextBlockProperties(textContextBlock);
 	// inset should be 1em
 	const inset = getcalculatedFontSize(slideSize, layoutMode) / dpi;
 	const textOptions = {
@@ -535,7 +588,7 @@ export const getTextOptions = (
 		inset: Math.round(inset * 100) / 100,
 	};
 	// get set of text blocks from contentState
-	const blockMap = container.text.textBody.getBlockMap();
+	const blockMap = textContextBlock.textBody.getBlockMap();
 	// create an array to store the data and styling for each text block
 	const textBlocks = [];
 	let charStyleRangeStart = 0;
@@ -548,7 +601,7 @@ export const getTextOptions = (
 	let addBreak = null;
 	blockMap.forEach(block => {
 		const charList = block.getCharacterList();
-		const blockStyle = PPTGetBlockStyle(block.getType(), slideSize, layoutMode, container.text.textOptions);
+		const blockStyle = PPTGetBlockStyle(block.getType(), slideSize, layoutMode, textContextBlock.textOptions);
 		charStyleRangeStart = 0;
 		charList.forEach((charMetadata, index) => {
 			if (index === 0) {

@@ -1,19 +1,41 @@
-import * as Schema from '../schema/Schema';
-import { Container, ContentBlock, Slide } from '../schema/types';
-import { getTextAssetPosition, getTextColor, getLayoutMode } from '../viewmodel/SlideViewModel';
-import { Asset, LayoutMode, TextAssetPosition, TextOptionsAlign } from '../schema/Schema';
-import { TextContentBlockViewModel } from '../viewmodel/TextContentBlockViewModel';
-import Editor, { ContentState } from 'draft-js';
+import SlideViewModel from '../viewmodel/SlideViewModel';
+import {
+  Asset,
+  Container,
+  ContentBlock,
+  LayoutMode,
+  TextAssetPosition,
+  TextOptionsAlign,
+} from '../types/Schema';
 
-const defaultContainer = {
-  assetContainer: null,
-  text: null,
+import { Slide } from '../types/types';
+
+const defaultContainer: Container = {
+  slug: 'slug',
+  childContainer: null,
+  contentBlocks: [],
   layoutOptions: {
     x: 0,
     y: 0,
     width: 12,
     height: 6,
   },
+};
+
+const assetViewModelToContentBlock = (asset: Asset): ContentBlock => {
+  // 🚨WARNING: This gets the private asset property of an AssetViewModel.
+  // This should only live for a short time.
+  return {
+    slug: asset && asset.metadata ? asset.metadata.assetLocalId : '12345',
+    type: asset.type,
+    content: asset,
+    layoutOptions: {
+      x: 'center',
+      y: 'center',
+      width: null,
+      height: null,
+    },
+  };
 };
 
 const addTextContentBlock = (
@@ -28,8 +50,7 @@ const addTextContentBlock = (
     width: number | null;
     height: number | null;
   },
-) => {
-  const displayOptions = {};
+): Container => {
   const layoutOptions = {
     x: options.x,
     y: options.y,
@@ -37,8 +58,8 @@ const addTextContentBlock = (
     height: options.height,
   };
 
-  const content = new TextContentBlockViewModel({
-    displayOptions,
+  const content = {
+    type: 'Text' as 'Text',
     layoutOptions,
     textBody: options.textBody,
     textOptions: {
@@ -46,11 +67,11 @@ const addTextContentBlock = (
       valign: options.valign,
       color: options.color,
     },
-  });
+  };
 
   return {
     ...container,
-    text: content,
+    contentBlocks: [content],
   };
 };
 
@@ -63,7 +84,7 @@ const addAssetContentBlock = (
     width: number | null;
     height: number | null;
   },
-) => {
+): Container => {
   const layoutOptions = {
     x: options.x,
     y: options.y,
@@ -73,26 +94,28 @@ const addAssetContentBlock = (
 
   return {
     ...container,
-    assetContainer: {
-      assets: options.content,
+    childContainer: {
+      slug: '1231231',
+      childContainer: null,
+      contentBlocks: options.content.map(assetViewModelToContentBlock),
       layoutOptions,
     },
   };
 };
 
-const tellLayout = (slide: Schema.Slide, contentState: any) => {
-  const assetPosition = getTextAssetPosition(slide);
-  let container;
+const tellLayout = (slide: SlideViewModel, overrideLayoutPosition: TextAssetPosition | null) => {
+  const assetPosition = slide.getTextAssetPosition(overrideLayoutPosition);
+  let container: Container;
 
   switch (assetPosition) {
     case 'MediaTop':
       container = addAssetContentBlock(
         addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Left,
           valign: TextOptionsAlign.Center,
-          color: getTextColor(slide),
-          x: 'center',
+          color: slide.textColor,
+          x: TextOptionsAlign.Center,
           y: 3,
           width: null,
           height: 3,
@@ -109,11 +132,11 @@ const tellLayout = (slide: Schema.Slide, contentState: any) => {
     case 'MediaBottom':
       container = addAssetContentBlock(
         addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Left,
           valign: TextOptionsAlign.Center,
-          color: getTextColor(slide),
-          x: 'center',
+          color: slide.textColor,
+          x: TextOptionsAlign.Center,
           y: 0,
           width: null,
           height: 3,
@@ -131,10 +154,10 @@ const tellLayout = (slide: Schema.Slide, contentState: any) => {
       // Possibly no Text
       container = addAssetContentBlock(
         addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Left,
           valign: TextOptionsAlign.Center,
-          color: getTextColor(slide),
+          color: slide.textColor,
           x: 6,
           y: 0,
           width: 6,
@@ -153,11 +176,11 @@ const tellLayout = (slide: Schema.Slide, contentState: any) => {
       // no assets
       if (!slide.assets.length) {
         container = addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Left,
           valign: TextOptionsAlign.Center,
-          color: getTextColor(slide),
-          x: 'center',
+          color: slide.textColor,
+          x: TextOptionsAlign.Center,
           y: 0,
           width: null,
           height: null,
@@ -168,10 +191,10 @@ const tellLayout = (slide: Schema.Slide, contentState: any) => {
     case 'MediaRight':
       container = addAssetContentBlock(
         addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Left,
           valign: TextOptionsAlign.Center,
-          color: getTextColor(slide),
+          color: slide.textColor,
           x: 0,
           y: 0,
           width: 6,
@@ -191,19 +214,19 @@ const tellLayout = (slide: Schema.Slide, contentState: any) => {
   return container;
 };
 
-const showLayout = (slide: Schema.Slide, contentState: any) => {
-  const assetPosition = getTextAssetPosition(slide);
-  let container;
+const showLayout = (slide: SlideViewModel, overrideLayoutPosition: TextAssetPosition | null) => {
+  const assetPosition = slide.getTextAssetPosition(overrideLayoutPosition);
+  let container: Container;
 
   switch (assetPosition) {
     case 'MediaTop':
       container = addAssetContentBlock(
         addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Center,
           valign: TextOptionsAlign.Top,
-          color: getTextColor(slide),
-          x: 'center',
+          color: slide.textColor,
+          x: TextOptionsAlign.Center,
           y: 5,
           width: null,
           height: 1,
@@ -220,11 +243,11 @@ const showLayout = (slide: Schema.Slide, contentState: any) => {
     case 'MediaBottom':
       container = addAssetContentBlock(
         addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Center,
           valign: TextOptionsAlign.Top,
-          color: getTextColor(slide),
-          x: 'center',
+          color: slide.textColor,
+          x: TextOptionsAlign.Center,
           y: 0,
           width: null,
           height: 1,
@@ -242,10 +265,10 @@ const showLayout = (slide: Schema.Slide, contentState: any) => {
       // Possibly no Text
       container = addAssetContentBlock(
         addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Left,
           valign: TextOptionsAlign.Top,
-          color: getTextColor(slide),
+          color: slide.textColor,
           x: 9,
           y: 0,
           width: 3,
@@ -264,10 +287,10 @@ const showLayout = (slide: Schema.Slide, contentState: any) => {
       // no assets
       if (!slide.assets.length) {
         container = addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Left,
           valign: TextOptionsAlign.Top,
-          color: getTextColor(slide),
+          color: slide.textColor,
           x: 0,
           y: 0,
           width: 8,
@@ -279,10 +302,10 @@ const showLayout = (slide: Schema.Slide, contentState: any) => {
     case 'MediaRight':
       container = addAssetContentBlock(
         addTextContentBlock(defaultContainer, {
-          textBody: contentState,
+          textBody: slide.contentState,
           align: TextOptionsAlign.Left,
           valign: TextOptionsAlign.Top,
-          color: getTextColor(slide),
+          color: slide.textColor,
           x: 0,
           y: 0,
           width: 3,
@@ -302,7 +325,7 @@ const showLayout = (slide: Schema.Slide, contentState: any) => {
   return container;
 };
 
-const introLayout = (slide: Schema.Slide, contentState: any) => {
+const introLayout = (slide: SlideViewModel) => {
   const container = addTextContentBlock(
     addAssetContentBlock(defaultContainer, {
       content: slide.assets,
@@ -312,13 +335,13 @@ const introLayout = (slide: Schema.Slide, contentState: any) => {
       height: null,
     }),
     {
-      textBody: contentState,
+      textBody: slide.contentState,
       align: TextOptionsAlign.Center,
       valign: TextOptionsAlign.Center,
-      color: getTextColor(slide),
+      color: slide.textColor,
       x: TextOptionsAlign.Center,
       y: 0,
-      width: null,  
+      width: null,
       height: null,
     },
   );
@@ -328,26 +351,30 @@ const introLayout = (slide: Schema.Slide, contentState: any) => {
 
 // fromSlideViewModel is responsible for taking a SlideViewModel
 // and turning it into an object renderable by the bento component
-export const fromSlideViewModel = (slide: Schema.Slide) => {
-  const layoutMode = getLayoutMode(slide);
-  const contentState = Editor.convertFromRaw(slide.body);
+export const fromSlideViewModel = (
+  slide: SlideViewModel,
+  overrideLayoutMode: LayoutMode | null,
+  overrideLayoutPosition: TextAssetPosition | null,
+): Slide => {
+  const layoutMode = slide.getLayoutMode(overrideLayoutMode);
+
   switch (layoutMode) {
     case 'Intro':
       return {
-        containers: [introLayout(slide, contentState)],
+        containers: [introLayout(slide)],
         layoutOptions: { x: 0, y: 0, width: 12, height: 6 },
       };
 
     case 'Show':
       return {
-        containers: [showLayout(slide, contentState)],
+        containers: [showLayout(slide, overrideLayoutPosition)],
         layoutOptions: { x: 0, y: 0, width: 12, height: 6 },
       };
 
     case 'Tell':
     default:
       return {
-        containers: [tellLayout(slide, contentState)],
+        containers: [tellLayout(slide, overrideLayoutPosition)],
         layoutOptions: { x: 0, y: 0, width: 12, height: 6 },
       };
   }

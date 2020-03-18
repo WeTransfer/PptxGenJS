@@ -1,4 +1,4 @@
-import { SlideBody, TextContentBlock, TextOptions } from '../schema/Schema';
+import { SlideBody, TextContentBlock, TextOptions } from '../types/Schema';
 
 import { AbstractContentBlock } from './AbstractContentBlock';
 

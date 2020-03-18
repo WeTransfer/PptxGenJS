@@ -8,6 +8,8 @@ export interface NestedUser {
   profileImageIsDefault?: boolean;
 }
 
+/* eslint-disable @typescript-eslint/no-namespace */
+
 export type AccessLevel = 'PublicRead' | 'TeamReadWrite' | 'TeamUnlistedReadWrite';
 export type Asset = ImageAsset | OEmbedAsset | VideoAsset | FileAsset | PlaceholderAsset;
 /**
@@ -192,16 +194,6 @@ export interface Container {
   contentBlocks: ContentBlock[];
 }
 
-export interface FileContent2 {
-  width: number;
-  height: number;
-  filesize?: number;
-  handle?: string;
-  mimetype?: string;
-  originalFilename?: string;
-  url: string;
-}
-
 export interface LayoutOptions {
   x: number | 'center';
   y: number | 'center';
@@ -229,28 +221,30 @@ export interface TextOptions {
   color?: string | null;
 }
 
-export type ContentBlockType = 'Text' | 'Image';
-
-export interface ImageContentBlock {
-  type: 'Image';
-  slug: string;
-  displayOptions: DisplayOptions;
-  layoutOptions: LayoutOptions;
-  content: FileContent2 | null;
-  originalContent: FileContent2 | null;
-  thumbnailContent: FileContent2 | null;
-}
-
 export interface TextContentBlock {
   type: 'Text';
-  slug: string;
-  displayOptions: DisplayOptions;
+  slug?: string;
+  displayOptions?: DisplayOptions;
   layoutOptions: LayoutOptions;
   textOptions: TextOptions;
   textBody: SlideBody | null;
 }
 
-export type ContentBlock = ImageContentBlock | TextContentBlock;
+export interface AssetContentBlock {
+  layoutOptions: LayoutOptions;
+  slug?: string;
+  content?: Asset;
+  type:
+    | 'Image'
+    | 'OEmbed'
+    | 'Video'
+    | 'File'
+    | 'Placeholder'
+    | 'Uploading'
+    | 'AssetFramePlaceholder';
+}
+
+export type ContentBlock = AssetContentBlock | TextContentBlock;
 
 type DeckColorsTypeUserDefined = 'user-defined';
 export type DeckColorsType = DeckColorsTypeUserDefined;

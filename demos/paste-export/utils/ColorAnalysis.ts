@@ -2,6 +2,12 @@ import * as math from './ColorAnalysisMath';
 import tinycolor from 'tinycolor2';
 
 const hueTable = [/*   0deg */ 0, -10, -10, 20, 20, 10, /* 180deg */ 10, 10, 10, -10, -20, 10];
+const S_MAX = 0.9;
+const L_MIN = 0.11;
+const L_FLOOR = 0.02;
+const L_FLOOR_BOOST = 0.15;
+const BKGND_L_OFFSETS = [0.1, 0.1, 0, -0.1];
+const BKGND_S_OFFSETS = [0, -0.1];
 
 // Consider the S x V unit square.
 //
@@ -122,4 +128,41 @@ export const withAlpha = (color: string, alpha: number) => {
   newColor.setAlpha(alpha);
 
   return newColor.toHex();
+};
+
+export const desaturateBlackBackground = (colorPalette: any): any => {
+  return {
+    ...colorPalette,
+    background: desaturateBlack(colorPalette.background),
+  }
+}
+
+const desaturateBlack = color => {
+  const tColor = tinycolor(color);
+  let hsl = tColor.toHsl();
+  if (hsl.l < L_MIN) {
+    hsl = desaturate(hsl).toHsl();
+  }
+  return tinycolor(hsl).toRgbString();
+};
+
+export const desaturate = hsl => {
+  if (hsl.l < L_FLOOR) {
+    hsl.l = L_FLOOR_BOOST;
+    hsl.s = 0;
+  } else if (hsl.s > S_MAX || hsl.l < L_MIN) {
+    hsl.s = math.clamp(hsl.s + math.lerp(BKGND_S_OFFSETS[0], BKGND_S_OFFSETS[1], hsl.s));
+    hsl.l = math.clamp(
+      hsl.l +
+        math.bilerp(
+          BKGND_L_OFFSETS[0],
+          BKGND_L_OFFSETS[1],
+          BKGND_L_OFFSETS[2],
+          BKGND_L_OFFSETS[3],
+          hsl.s,
+          hsl.l,
+        ),
+    );
+  }
+  return tinycolor(hsl);
 };
