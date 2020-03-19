@@ -217,7 +217,6 @@ const tellLayout = (slide: SlideViewModel, overrideLayoutPosition: TextAssetPosi
 const showLayout = (slide: SlideViewModel, overrideLayoutPosition: TextAssetPosition | null) => {
   const assetPosition = slide.getTextAssetPosition(overrideLayoutPosition);
   let container: Container;
-
   switch (assetPosition) {
     case 'MediaTop':
       container = addAssetContentBlock(

@@ -33,6 +33,7 @@ const genSlides_Paste = (pptx: any) => {
     deck.slides.forEach(slide => {
         const slideViewModel = new SlideViewModel(policy, slide)
         let slideLayout = fromSlideViewModel(slideViewModel, null, null);
+
         // remove empty text if viewing grid, or when not in edit mode and slide has assets
         if (slideViewModel.numAssets() > 0) {
           slideLayout = filterTextContentBlock(slideLayout, (content: Schema.TextContentBlock) =>
@@ -48,12 +49,13 @@ const genSlides_Paste = (pptx: any) => {
         slideLayout.containers.forEach(container => {
             doesContainerHaveAssets = hasAssets(container);
             addAssetsToSlide(
-                pptSlide,
-                slideViewModel,
-                slideCoordinates,
-                container,
-                layoutMode,
-                policy
+              pptx,
+              pptSlide,
+              slideViewModel,
+              slideCoordinates,
+              container,
+              layoutMode,
+              policy
             );
             const {
               textBlocks,

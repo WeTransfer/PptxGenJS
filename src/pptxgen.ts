@@ -470,24 +470,7 @@ export default class PptxGenJS implements IPresentationLib {
 			zip.file('ppt/tableStyles.xml', genXml.makeXmlTableStyles())
 			zip.file('ppt/viewProps.xml', genXml.makeXmlViewProps())
 
-			// C: Create a Layout/Master/Rel/Slide file for each SlideLayout and Slide
-			this.slideLayouts.forEach((layout, idx) => {
-				zip.file('ppt/slideLayouts/slideLayout' + (idx + 1) + '.xml', genXml.makeXmlLayout(layout))
-				zip.file('ppt/slideLayouts/_rels/slideLayout' + (idx + 1) + '.xml.rels', genXml.makeXmlSlideLayoutRel(idx + 1, this.slideLayouts))
-			})
-			this.slides.forEach((slide, idx) => {
-				zip.file('ppt/slides/slide' + (idx + 1) + '.xml', genXml.makeXmlSlide(slide))
-				zip.file('ppt/slides/_rels/slide' + (idx + 1) + '.xml.rels', genXml.makeXmlSlideRel(this.slides, this.slideLayouts, idx + 1))
-				// Create all slide notes related items. Notes of empty strings are created for slides which do not have notes specified, to keep track of _rels.
-				zip.file('ppt/notesSlides/notesSlide' + (idx + 1) + '.xml', genXml.makeXmlNotesSlide(slide))
-				zip.file('ppt/notesSlides/_rels/notesSlide' + (idx + 1) + '.xml.rels', genXml.makeXmlNotesSlideRel(idx + 1))
-			})
-			zip.file('ppt/slideMasters/slideMaster1.xml', genXml.makeXmlMaster(this.masterSlide, this.slideLayouts))
-			zip.file('ppt/slideMasters/_rels/slideMaster1.xml.rels', genXml.makeXmlMasterRel(this.masterSlide, this.slideLayouts))
-			zip.file('ppt/notesMasters/notesMaster1.xml', genXml.makeXmlNotesMaster())
-			zip.file('ppt/notesMasters/_rels/notesMaster1.xml.rels', genXml.makeXmlNotesMasterRel())
-
-			// Read and zip all Media
+			// C: Read and zip all Media
 			this.slides.forEach(slide => {
 				arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(slide, zip))
 			})
@@ -496,7 +479,7 @@ export default class PptxGenJS implements IPresentationLib {
 			})
 			arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(this.masterSlide, zip))
 
-			// STEP 2: Wait for Promises (if any) then generate the PPTX file
+			// D: Wait for Promises (if any) then generate the PPTX file
 			Promise.all(arrMediaPromises)
 				.catch(err => {
 					console.error(`ERROR! pptxgenjs export media:`)
@@ -505,25 +488,35 @@ export default class PptxGenJS implements IPresentationLib {
 					// FIXME: TODO: 20200107: if one image fails to load (eg 404), then *NONE* of the images load b/c of the `.all`...
 				})
 				.then(() => {
-					// E: Wait for Promises (if any) then generate the PPTX file
-					Promise.all(arrChartPromises)
-						.then(() => {
-							if (outputType === 'STREAM') {
-								// A: stream file
-								zip.generateAsync({ type: 'nodebuffer' }).then(content => {
-									resolve(content)
-								})
-							} else if (outputType) {
-								// B: Node [fs]: Output type user option or default
-								resolve(zip.generateAsync({ type: outputType }))
-							} else {
-								// C: Browser: Output blob as app/ms-pptx
-								resolve(zip.generateAsync({ type: 'blob' }))
-							}
+					// Create a Layout/Master/Rel/Slide file for each SlideLayout and Slide
+					// These have to come after zipping media because rel.Target's can be updated as image extensions are figured out
+					this.slideLayouts.forEach((layout, idx) => {
+						zip.file('ppt/slideLayouts/slideLayout' + (idx + 1) + '.xml', genXml.makeXmlLayout(layout))
+						zip.file('ppt/slideLayouts/_rels/slideLayout' + (idx + 1) + '.xml.rels', genXml.makeXmlSlideLayoutRel(idx + 1, this.slideLayouts))
+					})
+					this.slides.forEach((slide, idx) => {
+						zip.file('ppt/slides/slide' + (idx + 1) + '.xml', genXml.makeXmlSlide(slide))
+						zip.file('ppt/slides/_rels/slide' + (idx + 1) + '.xml.rels', genXml.makeXmlSlideRel(this.slides, this.slideLayouts, idx + 1))
+						// Create all slide notes related items. Notes of empty strings are created for slides which do not have notes specified, to keep track of _rels.
+						zip.file('ppt/notesSlides/notesSlide' + (idx + 1) + '.xml', genXml.makeXmlNotesSlide(slide))
+						zip.file('ppt/notesSlides/_rels/notesSlide' + (idx + 1) + '.xml.rels', genXml.makeXmlNotesSlideRel(idx + 1))
+					})
+					zip.file('ppt/slideMasters/slideMaster1.xml', genXml.makeXmlMaster(this.masterSlide, this.slideLayouts))
+					zip.file('ppt/slideMasters/_rels/slideMaster1.xml.rels', genXml.makeXmlMasterRel(this.masterSlide, this.slideLayouts))
+					zip.file('ppt/notesMasters/notesMaster1.xml', genXml.makeXmlNotesMaster())
+					zip.file('ppt/notesMasters/_rels/notesMaster1.xml.rels', genXml.makeXmlNotesMasterRel())
+					if (outputType === 'STREAM') {
+						// A: stream file
+						zip.generateAsync({ type: 'nodebuffer' }).then(content => {
+							resolve(content)
 						})
-						.catch(err => {
-							throw new Error(err)
-						})
+					} else if (outputType) {
+						// B: Node [fs]: Output type user option or default
+						resolve(zip.generateAsync({ type: outputType }))
+					} else {
+						// C: Browser: Output blob as app/ms-pptx
+						resolve(zip.generateAsync({ type: 'blob' }))
+					}
 				})
 		})
 

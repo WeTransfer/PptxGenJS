@@ -5,6 +5,12 @@
 import * as JSZip from 'jszip'
 import { IMG_BROKEN } from './core-enums'
 import { ISlide, ISlideLayout, ISlideRelMedia } from './core-interfaces'
+import arrayBufferToBuffer from 'arraybuffer-to-buffer';
+import imageType  from 'image-type';
+
+const getExtension = (filename: string):string => {
+	return filename.split('.').pop();
+}
 
 // for local files and non https files
 function zipBase64MediaData(fs: any, rel: any, zip: JSZip) {
@@ -53,7 +59,13 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 							res.setEncoding('binary') // IMPORTANT: Only binary encoding works
 							res.on('data', chunk => (rawData += chunk))
 							res.on('end', () => {
+								let imgType = null;
 								rel.data = Buffer.from(rawData, 'binary')
+								if (getExtension(rel.Target) === 'unknown') {
+									const buffer = arrayBufferToBuffer(rel.data);
+									imgType = imageType(buffer);
+									rel.Target = rel.Target.replace('unknown', imgType.ext)
+								}
 								zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 								resolve('done')
 							})

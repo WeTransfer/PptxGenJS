@@ -188,24 +188,24 @@ export const getMultiAssetHint = (
         assetWidths = assetWidths + assetSizes[index].width;
         const newDifference = Math.abs(assetWidths - multiAssetContainer.width / 2);
         if (index === 0 || newDifference < minDifference) {
-        minDifference = newDifference;
-        rows[1].indexStart = index + 1;
-        rows[0].size.width = assetWidths;
+            minDifference = newDifference;
+            rows[1].indexStart = index + 1;
+            rows[0].size.width = assetWidths;
         }
         const assetType = getAssetType(assetSizes[index], true);
         if (assetType !== 'AssetPortraitTall') {
-        areAllTallPortrait = false;
-        if (assetType !== 'AssetPortrait') {
-            areAtLeastPortrait = false;
-        }
+            areAllTallPortrait = false;
+            if (assetType !== 'AssetPortrait') {
+                areAtLeastPortrait = false;
+            }
         } else {
-        areAnyTallPortrait = true;
+            areAnyTallPortrait = true;
         }
         if (assetType !== 'AssetLandscapeDoubleWide') {
-        areAllLandscapeDoubleWide = false;
-        if (assetType !== 'AssetLandscape' && assetType !== 'AssetLandscapeWide') {
-            areAtLeastLandscape = false;
-        }
+            areAllLandscapeDoubleWide = false;
+            if (assetType !== 'AssetLandscape' && assetType !== 'AssetLandscapeWide') {
+                areAtLeastLandscape = false;
+            }
         }
     }
 
@@ -469,13 +469,13 @@ export const calculateMultiAssetLayout = ({
 
 export const  getMultiAssetLayout = (
     containerSize: Dimensions,
-    slideSize: Size,
+    pptSlideSize: Size,
     slide: SlideViewModel,
     layoutMode: Schema.LayoutMode,
 ) => {
-    const padding = getPadding(slideSize);
+    const padding = getPadding(pptSlideSize);
     const multiAssetGutter = padding / 4;
-    const frame = getFrame(slideSize, padding);
+    const frame = getFrame(pptSlideSize, padding);
     const assets = slide.assets;
 
     const { assetSizes, assetContainerSize } = getNormalizedAssetSizes(
@@ -494,7 +494,7 @@ export const  getMultiAssetLayout = (
 
     let multiAssetLayout = calculateMultiAssetLayout({
       slide,
-      slideSize,
+      slideSize: pptSlideSize,
       containerSize,
       assets,
       assetSizes,
@@ -508,7 +508,7 @@ export const  getMultiAssetLayout = (
     if (multiAssetHint.numRows < assets.length) {
       const multiAssetLayoutStacked = calculateMultiAssetLayout({
         slide,
-        slideSize,
+        slideSize: pptSlideSize,
         containerSize,
         assets,
         assetSizes,

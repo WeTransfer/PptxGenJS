@@ -13,6 +13,7 @@ Promise.resolve()
 	})
 	.then(fileName => {
 		console.log("EX1 exported: " + fileName);
+		if (verboseMode) console.log(`\n-----==~==[ DEMO COMPLETE! ]==~==-----\n`);
 	})
 	.catch(err => {
 		console.log("ERROR: " + err);
@@ -20,4 +21,4 @@ Promise.resolve()
 
 // ============================================================================
 
-if (verboseMode) console.log(`\n-----==~==[ DEMO COMPLETE! ]==~==-----\n`);
+

@@ -16,7 +16,7 @@ import {
 import { Coordinates, Dimensions } from '../types/types';
 import { createSignedFilestackURL, Policy } from '../utils/Filestack';
 import { getExtensionFromMimetype, getExtensionFromURL } from '../utils/URLUtils';
-import { AssetLayout, getMultiAssetLayout } from '../layout/MultiAssetLayout';
+import { AssetLayout, getMultiAssetLayout, MultiAssetLayout } from '../layout/MultiAssetLayout';
 import SlideViewModel from '../viewmodel/SlideViewModel';
 import { AsyncResource } from 'async_hooks';
 
@@ -403,19 +403,33 @@ export const getAssetCoordinates = (
 	};
 };
 
+// center multi-asset container inside assetContainer
+export const getMultiAssetContainerCoordinates = (
+	multiAssetLayout: MultiAssetLayout,
+	assetContainerCoordinates: PPTCoordinates,
+): PPTCoordinates => {
+	return {
+		x: assetContainerCoordinates.x + (assetContainerCoordinates.w - multiAssetLayout.multiAssetContainerStyle.width) / 2,
+		y: assetContainerCoordinates.y + (assetContainerCoordinates.h - multiAssetLayout.multiAssetContainerStyle.height) / 2,
+		w: multiAssetLayout.multiAssetContainerStyle.width,
+		h: multiAssetLayout.multiAssetContainerStyle.height,
+	}
+};
+
 export const getMultiAssetCoordinates = (
-	assetContainerCoords: PPTCoordinates,
+	multiAssetContainerCoords: PPTCoordinates,
 	assetLayout: AssetLayout,
 ): PPTCoordinates => {
 		return {
-		x: assetContainerCoords.x + assetLayout.left,
-		y: assetContainerCoords.y + assetLayout.top,
+		x: multiAssetContainerCoords.x + assetLayout.left,
+		y: multiAssetContainerCoords.y + assetLayout.top,
 		h: assetLayout.height,
 		w: assetLayout.width,
 	};
 };
 
 export const writeAssetToSlide = (
+	pptx: any,
 	pptSlide: any,
 	asset: Schema.Asset,
 	policy: Policy,
@@ -423,6 +437,7 @@ export const writeAssetToSlide = (
 	assetCoordinates: PPTCoordinates,
 	isIntro: boolean,
 	layoutMode: Schema.LayoutMode,
+	isMultiAsset: boolean,
 ) => {
 	let assetURL = null;
 	let assetOptions = null;
@@ -454,6 +469,7 @@ export const writeAssetToSlide = (
 						type: isIntro ? 'cover' : 'contain',
 					};
 					pptSlide.addImage(assetOptions);
+					break;
 				}
 				case 'Video': {
 					assetURL = asset.sourceURL;
@@ -468,6 +484,7 @@ export const writeAssetToSlide = (
 						},
 					};
 					pptSlide.addMedia(assetOptions);
+					break;
 				}
 				default:
 					const textBlockStyle = calcPPTGetBlockStyle(
@@ -475,9 +492,10 @@ export const writeAssetToSlide = (
 						slideSizePx,
 						layoutMode,
 					);
+					const unsupportedCoordinates = isMultiAsset ? assetCoordinates : assetContainerCoordinates;
 					assetOptions = {
-						...assetContainerCoordinates,
-						shape: pptSlide.ShapeType.rect,
+						...unsupportedCoordinates,
+						shape: pptx.ShapeType.rect,
 						fill: GreyBackgroundColor,
 						align: 'center',
 						font: textBlockStyle.fontFace,
@@ -485,6 +503,7 @@ export const writeAssetToSlide = (
 					}
 					pptSlide.addText('Embed type not supported', assetOptions);
 			}
+			break;
 		case 'Video': {
 			const videoAssetMetadata = (asset as VideoAsset).transcodings[0].content.metadata;
 			const videoAssetThumbnailMetadata = ((asset as VideoAsset).thumbnail as FilestackImageContent).metadata;
@@ -500,13 +519,15 @@ export const writeAssetToSlide = (
 				type: 'video',
 			};
 			pptSlide.addMedia(assetOptions);
+			break;
 		}
 		default:
-			return null;
+			break;
 	}
 }
 
 export const addAssetsToSlide = (
+	pptx: any,
 	pptSlide: any,
 	slide: SlideViewModel,
 	slideCoordinates: PPTCoordinates,
@@ -534,17 +555,23 @@ export const addAssetsToSlide = (
 			slide,
 			layoutMode	
 		)
+		const multiAssetContainerCoordinates = getMultiAssetContainerCoordinates(
+			multiAssetLayout,
+			assetContainerCoordinates
+		);
 		let multiAssetCoordinates: PPTCoordinates;
 		multiAssetLayout.assetLayouts.forEach((assetLayout, index) => {
-			multiAssetCoordinates = getMultiAssetCoordinates(assetContainerCoordinates, assetLayout);
+			multiAssetCoordinates = getMultiAssetCoordinates(multiAssetContainerCoordinates, assetLayout);
 			writeAssetToSlide(
+				pptx,
 				pptSlide,
 				(assetContainer.contentBlocks[index] as AssetContentBlock).content,
 				policy,
-				assetContainerCoordinates,
+				multiAssetContainerCoordinates,
 				multiAssetCoordinates,
 				isIntro,
 				layoutMode,
+				isMultiAsset,
 			)
 		})
 
@@ -557,6 +584,7 @@ export const addAssetsToSlide = (
 			? assetContainerCoordinates
 			: getAssetCoordinates(assetContainerCoordinates, asset);
 		writeAssetToSlide(
+			pptx,
 			pptSlide,
 			asset,
 			policy,
@@ -564,6 +592,7 @@ export const addAssetsToSlide = (
 			assetCoordinates,
 			isIntro,
 			layoutMode,
+			isMultiAsset,
 		)
 	}
 }

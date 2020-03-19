@@ -22,6 +22,8 @@ export const TEXT_BASE_FONT_SIZE_TELL = 28;
 export const TEXT_BASE_FONT_SIZE_SHOW = 20;
 export const BASE_LAYOUT_WIDTH = 1440;
 
+const assetDefaultSize = { width: 1200, height: 1200 };
+
 export const getInitialAssetSize = (asset: Asset): Size => {
 	switch(asset.type) {
 		case 'Image':
@@ -33,13 +35,13 @@ export const getInitialAssetSize = (asset: Asset): Size => {
 				case 'Video':
 					return asset.content.size;
 				default:
-					// for other embeds
-					return {width: 0, height: 0}
+                    // for other embeds
+					return assetDefaultSize
 			}
 		case 'Video':
 			return asset.transcodings[0].content.size;
     }
-    return {width: 0, height: 0} 
+    return assetDefaultSize
 }
 
 export const calcOverallAssetSize = (

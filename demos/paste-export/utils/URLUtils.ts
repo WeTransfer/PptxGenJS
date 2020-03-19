@@ -19,6 +19,7 @@ export const getExtensionFromMimetype = (mimetype) => {
         case 'video/mp4':
             return 'mp4';
     }
+    return 'unknown';
 }
 
 
