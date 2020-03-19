@@ -10,6 +10,7 @@ import { ContentState, EditorState, convertFromRaw } from 'draft-js';
 import * as Filestack from '../utils/Filestack';
 import * as Schema from '../types/Schema';
 import { Asset } from '../types/Schema';
+import { calcOverallAssetSize } from '../utils/AssetUtils';
 
 import { colorAnalysis, desaturateBlackBackground } from '../utils/ColorAnalysis';
 
@@ -123,6 +124,37 @@ export default class SlideViewModel {
 
   public getAsset(index: number): Asset | null {
     return index >= 0 && index < this.numAssets() ? this.assets[index] : null;
+  }
+
+  public getAssetIndexByLocalId = (
+    slide: SlideViewModel | Schema.Slide,
+    assetLocalId: Schema.AssetLocalId,
+  ): number =>
+    slide instanceof SlideViewModel
+      ? slide.assets.findIndex(asset => assetLocalId === asset.metadata.assetLocalId)
+      : slide.assets.findIndex(
+          asset => asset && asset.metadata && assetLocalId === asset.metadata.assetLocalId,
+        );
+
+  public getAssetIndexById(
+    assetLocalId: Schema.AssetLocalId,
+  ): number | null {
+    const index = this.getAssetIndexByLocalId(this.slide, assetLocalId);
+    return index >= 0 && index < this.numAssets() ? index : null;
+  }
+
+  public getOverallAssetSize(
+    index: number,
+  ): Schema.Size | null {
+    // returns the size of the asset in its frame
+    if (!(index >= 0 && index < this.numAssets())) {
+      return null;
+    }
+    const asset = this.assets[index];
+    const layoutMode = this.getLayoutMode();
+    return asset
+      ? calcOverallAssetSize(asset, null, layoutMode, this.hasMultipleAssets)
+      : null;
   }
 
   get autoColorPalette(): Schema.AssetColorPalette {

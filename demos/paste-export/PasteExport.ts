@@ -1,22 +1,22 @@
+/* Takes Paste deck schmea and policy JSON files and generates a PowerPoint deck from them */
+
 import * as Filestack from './utils/Filestack';
 import * as Schema from './types/Schema';
+import { 
+  addAssetsToSlide,
+  artBoardDimensions,
+  getOverlayOptions,
+  getPPTCoordinates,
+  getTextOptions,
+} from './layout/GeneratePPTCoordinates';
 import { colorToHex } from './utils/ColorAnalysis';
 import { filterTextContentBlock } from './layout/SlideLayout'; 
 import { fromSlideViewModel } from './layout/fromSlideViewModel';
-import { 
-  artBoardDimensions,
-  getAssetAreaShape,
-  getAssetOptions,
-  getOverlayOptions,
-  getPPTCoordinates,
-  getTextOptions
-} from './layout/GeneratePPTCoordinates';
+import { hasAssets } from './utils/AssetUtils';
 import pptxgen from '../../dist/pptxgen.cjs.js';
 import pasteSchema from './json/PasteSchema.json';
 import policySchema  from './json/PastePolicy.json';
-
 import SlideViewModel from './viewmodel/SlideViewModel';
-
 
 const getTimestamp = () => {
 	var dateNow = new Date();
@@ -44,32 +44,17 @@ const genSlides_Paste = (pptx: any) => {
         const backgroundColor = colorToHex(slideViewModel.getColorPalette().background);
         pptSlide.bkgd = backgroundColor;
         const slideCoordinates = getPPTCoordinates(artBoardDimensions, slideLayout.layoutOptions);
+        let doesContainerHaveAssets = false;
         slideLayout.containers.forEach(container => {
-            const {
-              assetType,
-              assetOptions
-            } = 
-              getAssetOptions(
-                pptx,
+            doesContainerHaveAssets = hasAssets(container);
+            addAssetsToSlide(
+                pptSlide,
                 slideViewModel,
                 slideCoordinates,
                 container,
                 layoutMode,
                 policy
-              );
-            if (assetOptions !== null ) {
-              switch (assetType) {
-                case 'image':
-                  pptSlide.addImage(assetOptions);
-                  break;
-                case 'media':
-                  pptSlide.addMedia(assetOptions);
-                  break;
-                case 'unsupported':
-                  pptSlide.addText('Embed type not supported', assetOptions);
-                  break;
-              }
-            }
+            );
             const {
               textBlocks,
               textOptions
@@ -77,9 +62,9 @@ const genSlides_Paste = (pptx: any) => {
               layoutMode,
               container,
             );
-            if (textOptions != null && assetOptions != null && layoutMode === 'Intro') {
+            if (textOptions != null && doesContainerHaveAssets && layoutMode === 'Intro') {
               // if there is an asset and text in Intro mode,
-              // add a transparent shape over the asset
+              // add a transparent shape over the asset to make text more visible
               const overlayOptions = getOverlayOptions(
                 container,
                 slideCoordinates,

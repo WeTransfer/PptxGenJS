@@ -1,6 +1,6 @@
 import { Size } from '../types/Schema';
 
-const scaleToContainFit = ({
+export const scaleToContainFit = ({
     containerSize,
     sizeToFit,
     gutterWidth = 0,

@@ -1,14 +1,24 @@
 import * as Schema from '../types/Schema';
 import { colorToHex, withAlpha } from '../utils/ColorAnalysis';
-import { createSignedFilestackURL } from '../utils/Filestack';
-import { getExtensionFromMimetype, getExtensionFromURL } from '../utils/URLUtils';
 import { fitToContainer } from '../utils/SizeUtils';
+import { getCalculatedFontSize, getInitialAssetSize, hasAssets } from '../utils/AssetUtils';
 import { gridVariables} from '../layout/SlideLayout';
 import { getDisplayBleedProps } from '../layout/DisplayBleed';
-import { Container, ContentBlock, TextContentBlock } from '../types/Schema';
+import { 
+	AssetContentBlock,
+	Container,
+	ContentBlock,
+	FilestackImageContent,
+	TextContentBlock,
+	URLImageContent,
+	VideoAsset,
+} from '../types/Schema';
 import { Coordinates, Dimensions } from '../types/types';
+import { createSignedFilestackURL, Policy } from '../utils/Filestack';
+import { getExtensionFromMimetype, getExtensionFromURL } from '../utils/URLUtils';
+import { AssetLayout, getMultiAssetLayout } from '../layout/MultiAssetLayout';
 import SlideViewModel from '../viewmodel/SlideViewModel';
-
+import { AsyncResource } from 'async_hooks';
 
 export interface PPTCoordinates {
 	x: number;
@@ -33,10 +43,16 @@ const presWidth = 10;
 const presHeight = 5.625;
 
 // conversion factor to go from pixels to inches.
-const dpi = 96 / 1.75;
+export const dpi = 96 / 1.75;
+
+// Powerpoint slide size in inches
+export const slideSizeIn = {
+	width: presWidth,
+	height: presHeight,
+};
 
 // Powerpoint slide size in pixels
-const slideSize = {
+export const slideSizePx = {
 	width: presWidth * dpi,
 	height: presHeight * dpi,
 };
@@ -189,16 +205,6 @@ const blockTypeOptions = [
   },
 ];
 
-const LAYOUT_MODE_SHOW = 'Show';
-const LAYOUT_MODE_TELL = 'Tell';
-const LAYOUT_MODE_INTRO = 'Intro';
-
-const TEXT_BASE_FONT_SIZE = 28;
-const TEXT_BASE_FONT_SIZE_INTRO = 45;
-const TEXT_BASE_FONT_SIZE_TELL = 28;
-const TEXT_BASE_FONT_SIZE_SHOW = 20;
-const BASE_LAYOUT_WIDTH = 1440;
-
 const percentStringToNumber = (percentString: string) => {
 	return parseFloat(percentString) / 100;
 }
@@ -237,40 +243,6 @@ const getTextBlockProperties = (textContentBlock: TextContentBlock) => {
 	};
   };
 
-const getAdjustedBaseFontSize = (
-	baseFontSize,
-	layoutMode,
-) => {
-	switch (layoutMode) {
-		case LAYOUT_MODE_SHOW:
-		return TEXT_BASE_FONT_SIZE_SHOW * (baseFontSize / TEXT_BASE_FONT_SIZE);
-		case LAYOUT_MODE_TELL:
-		return TEXT_BASE_FONT_SIZE_TELL * (baseFontSize / TEXT_BASE_FONT_SIZE);
-		case LAYOUT_MODE_INTRO:
-		return TEXT_BASE_FONT_SIZE_INTRO * (baseFontSize / TEXT_BASE_FONT_SIZE);
-		default:
-	}
-};
-
-const layoutGetCalculatedFontSize = (
-	containerSize,
-	baseLayoutWidth,
-	baseFontSize,
-) => {
-	return (containerSize.width / baseLayoutWidth) * baseFontSize;
-};
-
-const getcalculatedFontSize = (
-    slideSize: Schema.Size,
-    layoutMode: Schema.LayoutMode,
-) => {
-	const adjustedFontSize = getAdjustedBaseFontSize(TEXT_BASE_FONT_SIZE, layoutMode);
-	// these functions return px.  Multiply by 4/3 to get pt, which PptxGenJS uses.
-	return (
-		layoutGetCalculatedFontSize(slideSize, BASE_LAYOUT_WIDTH, adjustedFontSize) * (4 / 3)
-	);
-};
-
 const getFontFace = (blockType) => {
 	let fontFace;
 	switch (blockType) {
@@ -289,13 +261,13 @@ const getFontFace = (blockType) => {
 		: fontFace;
 };
 
-const calcPPTGetBlockStyle = (
+export const calcPPTGetBlockStyle = (
 	blockType,
 	slideSize,
 	layoutMode,
 ) => {
 	const fontFace = getFontFace(blockType);
-	const baseFontSize = getcalculatedFontSize(slideSize, layoutMode);
+	const baseFontSize = getCalculatedFontSize(slideSize, layoutMode);
 	let BlockType;
 	let fontSize = baseFontSize;
 	let bulletType: BulletType = false;
@@ -365,7 +337,7 @@ const getInlineStyles = (rangeStyle) => {
 	};
 };
 
-export const getAssetContainerCoordinates = (
+export const getAssetContainerCoordinates = 	(
 	slideCoordinates: PPTCoordinates,
 	assetContainer: Container | ContentBlock,
 	hasBleed: boolean
@@ -418,29 +390,8 @@ export const getAssetCoordinates = (
 	asset: Schema.Asset,
 ) => {
 	// determine if asset is image or OEmbed 
-	let assetSize 
-	switch(asset.type) {
-		case 'Image':
-			assetSize = asset.content.size;
-			break;
-		case 'OEmbed':
-			switch (asset.content.type) {
-				case 'Photo':
-					assetSize = asset.content.photo.size;
-					break;
-				case 'Video':
-					assetSize = asset.content.size;
-					break;
-				default:
-					// for other embeds
-					assetSize = null;
-					break;
-			}
-			break;
-		case 'Video':
-			assetSize = asset.transcodings[0].content.size;
-			break;
-	}
+	const assetSize = getInitialAssetSize(asset);
+
 	const assetDimensions = fitToContainer({source: assetSize, target: { height: assetContainerCoords.h, width: assetContainerCoords.w }});
 	const x = assetContainerCoords.x + (assetContainerCoords.w - assetDimensions.width) / 2;
 	const y = assetContainerCoords.y + (assetContainerCoords.h - assetDimensions.height) / 2;
@@ -452,103 +403,168 @@ export const getAssetCoordinates = (
 	};
 };
 
-export const getAssetOptions = (
-	presentation,
-	slide: SlideViewModel,
-	slideCoordinates,
-	container,
-	layoutMode,
-	policy
-) => {
-	const assetContainer = container.childContainer;
-	if (
-		assetContainer == null ||
-		assetContainer.contentBlocks.length == 0
-	) {
+export const getMultiAssetCoordinates = (
+	assetContainerCoords: PPTCoordinates,
+	assetLayout: AssetLayout,
+): PPTCoordinates => {
 		return {
-			assetType: null,
-			assetOptions: null
-		};
-	}
-	const assetContentBlock = assetContainer.contentBlocks[0];
-	const asset = assetContentBlock.content;
+		x: assetContainerCoords.x + assetLayout.left,
+		y: assetContainerCoords.y + assetLayout.top,
+		h: assetLayout.height,
+		w: assetLayout.width,
+	};
+};
+
+export const writeAssetToSlide = (
+	pptSlide: any,
+	asset: Schema.Asset,
+	policy: Policy,
+	assetContainerCoordinates: PPTCoordinates,
+	assetCoordinates: PPTCoordinates,
+	isIntro: boolean,
+	layoutMode: Schema.LayoutMode,
+) => {
 	let assetURL = null;
-	let assetCoordinates = null;
 	let assetOptions = null;
-	const hasBleed = layoutMode !== 'Tell' && !slide.hasShadow();
-	const isIntro = layoutMode === 'Intro';
-	const assetContainerCoordinates = getAssetContainerCoordinates(slideCoordinates, assetContainer, hasBleed)
-	assetCoordinates = isIntro
-		? assetContainerCoordinates
-		: getAssetCoordinates(assetContainerCoordinates, asset);
 	switch (asset.type) {
 		case 'Image': {
-			assetURL = createSignedFilestackURL(policy, asset.content.metadata.url);
+			const imageAssetMetadata = (asset.content as FilestackImageContent).metadata;
+			assetURL = createSignedFilestackURL(
+				policy,
+				imageAssetMetadata.url
+			);
 			assetOptions = {
 				...assetCoordinates,
 				path: assetURL,
 				type: isIntro ? 'cover' : 'contain',
-				extension: getExtensionFromMimetype(asset.content.metadata.mimetype),
+				extension: getExtensionFromMimetype(imageAssetMetadata.mimetype),
 			};
-			return {assetType: 'image', assetOptions};
+			pptSlide.addImage(assetOptions);
+			break;
 		}
 		case 'OEmbed':
 			switch (asset.content.type) {
 				case 'Photo': {
-					assetURL = asset.content.photo.url;
+					const PhotoAssetUrl = (asset.content.photo as URLImageContent).url;
+					assetURL = PhotoAssetUrl;
 					assetOptions = {
 						...assetCoordinates,
 						path: assetURL,
-						extension: getExtensionFromURL(asset.content.photo.url),
+						extension: getExtensionFromURL(PhotoAssetUrl),
 						type: isIntro ? 'cover' : 'contain',
 					};
-					return {assetType: 'image', assetOptions};
+					pptSlide.addImage(assetOptions);
 				}
 				case 'Video': {
 					assetURL = asset.sourceURL;
+					const videoThumbnailUrl = (asset.content.metadata.thumbnail as URLImageContent).url
 					assetOptions = {
 						...assetCoordinates,
 						link: assetURL,
 						type: 'online',
 						thumbnail: {
-							link: createSignedFilestackURL(policy, asset.content.metadata.thumbnail.url),
-							extension: getExtensionFromURL(asset.content.metadata.thumbnail.url),
-					},
+							link: createSignedFilestackURL(policy, videoThumbnailUrl),
+							extension: getExtensionFromURL(videoThumbnailUrl),
+						},
 					};
-					return {assetType: 'media', assetOptions};
+					pptSlide.addMedia(assetOptions);
 				}
 				default:
 					const textBlockStyle = calcPPTGetBlockStyle(
 						'header-one',
-						slideSize,
+						slideSizePx,
 						layoutMode,
 					);
 					assetOptions = {
 						...assetContainerCoordinates,
-						shape: presentation.ShapeType.rect,
+						shape: pptSlide.ShapeType.rect,
 						fill: GreyBackgroundColor,
 						align: 'center',
 						font: textBlockStyle.fontFace,
 						fontSize: textBlockStyle.fontSize,
 					}
-					return {assetType: 'unsupported', assetOptions};
+					pptSlide.addText('Embed type not supported', assetOptions);
 			}
 		case 'Video': {
-			assetURL = createSignedFilestackURL(policy, asset.transcodings[0].content.metadata.url);
+			const videoAssetMetadata = (asset as VideoAsset).transcodings[0].content.metadata;
+			const videoAssetThumbnailMetadata = ((asset as VideoAsset).thumbnail as FilestackImageContent).metadata;
+			assetURL = createSignedFilestackURL(policy, videoAssetMetadata.url);
 			assetOptions = {
 				...assetCoordinates,
 				path: assetURL,
-				extension: getExtensionFromMimetype(asset.transcodings[0].content.metadata.mimetype),
+				extension: getExtensionFromMimetype(videoAssetMetadata.mimetype),
 				thumbnail: {
-					link: createSignedFilestackURL(policy, asset.thumbnail.metadata.url),
-					extension: getExtensionFromMimetype(asset.thumbnail.metadata.mimetype),
+					link: createSignedFilestackURL(policy, videoAssetThumbnailMetadata.url),
+					extension: getExtensionFromMimetype(videoAssetThumbnailMetadata.mimetype),
 				},
 				type: 'video',
 			};
-			return {assetType: 'media', assetOptions};
+			pptSlide.addMedia(assetOptions);
 		}
 		default:
 			return null;
+	}
+}
+
+export const addAssetsToSlide = (
+	pptSlide: any,
+	slide: SlideViewModel,
+	slideCoordinates: PPTCoordinates,
+	container: Container,
+	layoutMode: Schema.LayoutMode,
+	policy: Policy, 
+) => {
+	const assetContainer = container.childContainer;
+	
+	if (!hasAssets(container)) {
+		return {
+			assetType: null,
+			assetOptions: null
+		};
+	}
+	const isMultiAsset = assetContainer.contentBlocks.length > 1;	
+	let assetCoordinates = null;
+	const hasBleed = layoutMode !== 'Tell' && !slide.hasShadow();
+	const isIntro = layoutMode === 'Intro';
+	const assetContainerCoordinates = getAssetContainerCoordinates(slideCoordinates, assetContainer, hasBleed)
+	if (isMultiAsset && !isIntro) {
+		const multiAssetLayout = getMultiAssetLayout(
+			{width: assetContainerCoordinates.w, height: assetContainerCoordinates.h},
+			slideSizeIn,
+			slide,
+			layoutMode	
+		)
+		let multiAssetCoordinates: PPTCoordinates;
+		multiAssetLayout.assetLayouts.forEach((assetLayout, index) => {
+			multiAssetCoordinates = getMultiAssetCoordinates(assetContainerCoordinates, assetLayout);
+			writeAssetToSlide(
+				pptSlide,
+				(assetContainer.contentBlocks[index] as AssetContentBlock).content,
+				policy,
+				assetContainerCoordinates,
+				multiAssetCoordinates,
+				isIntro,
+				layoutMode,
+			)
+		})
+
+	} else {
+		// if in intro mode, use the last asset as the background
+		const assetIndex = isIntro ? slide.assets.length - 1 : 0
+		const assetContentBlock = assetContainer.contentBlocks[assetIndex] as AssetContentBlock;
+		const asset = assetContentBlock.content;
+		assetCoordinates = isIntro
+			? assetContainerCoordinates
+			: getAssetCoordinates(assetContainerCoordinates, asset);
+		writeAssetToSlide(
+			pptSlide,
+			asset,
+			policy,
+			assetContainerCoordinates,
+			assetCoordinates,
+			isIntro,
+			layoutMode,
+		)
 	}
 }
 
@@ -582,7 +598,7 @@ export const getTextOptions = (
 	}
 	const textBlockProperties = getTextBlockProperties(textContextBlock);
 	// inset should be 1em
-	const inset = getcalculatedFontSize(slideSize, layoutMode) / dpi;
+	const inset = getCalculatedFontSize(slideSizePx, layoutMode) / dpi;
 	const textOptions = {
 		...textBlockProperties,
 		inset: Math.round(inset * 100) / 100,
@@ -601,7 +617,7 @@ export const getTextOptions = (
 	let addBreak = null;
 	blockMap.forEach(block => {
 		const charList = block.getCharacterList();
-		const blockStyle = PPTGetBlockStyle(block.getType(), slideSize, layoutMode, textContextBlock.textOptions);
+		const blockStyle = PPTGetBlockStyle(block.getType(), slideSizePx, layoutMode, textContextBlock.textOptions);
 		charStyleRangeStart = 0;
 		charList.forEach((charMetadata, index) => {
 			if (index === 0) {
