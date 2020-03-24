@@ -61,6 +61,7 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 							res.on('end', () => {
 								let imgType = null;
 								rel.data = Buffer.from(rawData, 'binary')
+								// if image type is unknown, then detect type from image data
 								if (getExtension(rel.Target) === 'unknown') {
 									const buffer = arrayBufferToBuffer(rel.data);
 									imgType = imageType(buffer);
