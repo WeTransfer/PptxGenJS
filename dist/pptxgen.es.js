@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-03-19T18:38:03.051Z */
+/* PptxGenJS 3.2.0-beta @ 2020-03-24T16:04:44.464Z */
 import * as JSZip from 'jszip';
 import arrayBufferToBuffer from 'arraybuffer-to-buffer';
 import imageType from 'image-type';
@@ -5761,7 +5761,9 @@ function encodeSlideMediaRels(layout, zip) {
                         if (getExtension(rel.Target) === 'unknown') {
                             var buffer = arrayBufferToBuffer(rel.data);
                             imgType = imageType(buffer);
-                            rel.Target = rel.Target.replace('unknown', imgType.ext);
+                            if (imgType !== null) {
+                                rel.Target = rel.Target.replace('unknown', imgType.ext);
+                            }
                         }
                         zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                         resolve('done');

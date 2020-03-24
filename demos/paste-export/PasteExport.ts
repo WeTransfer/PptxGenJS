@@ -8,11 +8,12 @@ import {
   getOverlayOptions,
   getPPTCoordinates,
   getTextOptions,
+  hasAssets,
+  hasText,
 } from './layout/GeneratePPTCoordinates';
 import { colorToHex } from './utils/ColorAnalysis';
 import { filterTextContentBlock } from './layout/SlideLayout'; 
 import { fromSlideViewModel } from './layout/fromSlideViewModel';
-import { hasAssets } from './utils/AssetUtils';
 import pptxgen from '../../dist/pptxgen.cjs.js';
 import pasteSchema from './json/PasteSchema.json';
 import policySchema  from './json/PastePolicy.json';
@@ -44,10 +45,11 @@ const genSlides_Paste = (pptx: any) => {
         const layoutMode = slideViewModel.getLayoutMode(null);
         const backgroundColor = colorToHex(slideViewModel.getColorPalette().background);
         pptSlide.bkgd = backgroundColor;
+        // get overall coordinates of slide in coordinates used by PowerPoint (inches) 
         const slideCoordinates = getPPTCoordinates(artBoardDimensions, slideLayout.layoutOptions);
-        let doesContainerHaveAssets = false;
         slideLayout.containers.forEach(container => {
-            doesContainerHaveAssets = hasAssets(container);
+            const doesHaveAssets = hasAssets(container);
+            const doesHaveText = hasText(container);
             addAssetsToSlide(
               pptx,
               pptSlide,
@@ -64,7 +66,8 @@ const genSlides_Paste = (pptx: any) => {
               layoutMode,
               container,
             );
-            if (textOptions != null && doesContainerHaveAssets && layoutMode === 'Intro') {
+            
+            if (textOptions != null && doesHaveAssets && layoutMode === 'Intro') {
               // if there is an asset and text in Intro mode,
               // add a transparent shape over the asset to make text more visible
               const overlayOptions = getOverlayOptions(

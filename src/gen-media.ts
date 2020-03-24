@@ -64,7 +64,9 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 								if (getExtension(rel.Target) === 'unknown') {
 									const buffer = arrayBufferToBuffer(rel.data);
 									imgType = imageType(buffer);
-									rel.Target = rel.Target.replace('unknown', imgType.ext)
+									if (imgType !== null) {
+										rel.Target = rel.Target.replace('unknown', imgType.ext)
+									}
 								}
 								zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 								resolve('done')

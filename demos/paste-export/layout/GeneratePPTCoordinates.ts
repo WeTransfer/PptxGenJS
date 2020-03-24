@@ -1,7 +1,7 @@
 import * as Schema from '../types/Schema';
 import { colorToHex, withAlpha } from '../utils/ColorAnalysis';
 import { fitToContainer } from '../utils/SizeUtils';
-import { getCalculatedFontSize, getInitialAssetSize, hasAssets } from '../utils/AssetUtils';
+import { getCalculatedFontSize, getInitialAssetSize } from '../utils/AssetUtils';
 import { gridVariables} from '../layout/SlideLayout';
 import { getDisplayBleedProps } from '../layout/DisplayBleed';
 import { 
@@ -524,6 +524,25 @@ export const writeAssetToSlide = (
 		default:
 			break;
 	}
+}
+
+export const hasText = (container: Schema.Container): boolean => {
+	const textContextBlock = container.contentBlocks[0] as TextContentBlock;
+	if (!textContextBlock.textBody.hasText()) {
+		return false
+	}
+	return true
+}
+
+export const hasAssets = (container: Schema.Container): boolean => {
+    const assetContainer = container.childContainer;
+	if (
+		assetContainer == null ||
+		assetContainer.contentBlocks.length == 0
+	) {
+		return false;
+    }
+    return true;
 }
 
 export const addAssetsToSlide = (

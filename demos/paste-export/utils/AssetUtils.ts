@@ -88,14 +88,3 @@ export const getCalculatedFontSize = (
 		layoutGetCalculatedFontSize(slideSize, BASE_LAYOUT_WIDTH, adjustedFontSize) * (4 / 3)
 	);
 };
-
-export const hasAssets = (container: Schema.Container): boolean => {
-    const assetContainer = container.childContainer;
-	if (
-		assetContainer == null ||
-		assetContainer.contentBlocks.length == 0
-	) {
-		return false;
-    }
-    return true;
-}
