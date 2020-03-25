@@ -34,15 +34,13 @@
     "@types/jszip": "^3.1.7",
     "@types/node": "^13.7.1",
     "arraybuffer-to-buffer": "0.0.7",
-    "draft-js": "^0.11.4",
     "https": "^1.0.0",
     "image-size": "^0.8.3",
     "image-type": "^4.1.0",
     "jszip": "^3.2.2",
     "jszip-utils": "^0.1.0",
     "react": "^16.13.0",
-    "react-dom": "^16.13.0",
-    "tinycolor2": "^1.4.1"
+    "react-dom": "^16.13.0"
   },
   "devDependencies": {
     "doctoc": "^1.4.0",
