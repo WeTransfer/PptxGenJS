@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-03-24T16:04:44.464Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-09T20:13:08.234Z */
 import * as JSZip from 'jszip';
 import arrayBufferToBuffer from 'arraybuffer-to-buffer';
 import imageType from 'image-type';
@@ -5758,6 +5758,7 @@ function encodeSlideMediaRels(layout, zip) {
                     res.on('end', function () {
                         var imgType = null;
                         rel.data = Buffer.from(rawData, 'binary');
+                        // if image type is unknown, then detect type from image data
                         if (getExtension(rel.Target) === 'unknown') {
                             var buffer = arrayBufferToBuffer(rel.data);
                             imgType = imageType(buffer);

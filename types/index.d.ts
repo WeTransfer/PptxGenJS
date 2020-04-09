@@ -1002,11 +1002,16 @@ declare namespace PptxGenJS {
 		rounding?: boolean
 		placeholder?: any
 		rotate?: number
+		extension?: string
 	}
 	export interface IMediaOpts extends PositionOptions, OptsDataOrPath {
 		link: string
 		onlineVideoLink?: string
 		type?: MediaType
+		thumbnail?: {
+			link: string,
+			extension: string,
+		  },
 	}
 	export interface IShapeOptions extends PositionOptions {
 		align?: HAlign

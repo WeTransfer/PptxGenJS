@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-03-24T16:04:44.458Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-09T20:13:08.169Z */
 'use strict';
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -5762,6 +5762,7 @@ function encodeSlideMediaRels(layout, zip) {
                     res.on('end', function () {
                         var imgType = null;
                         rel.data = Buffer.from(rawData, 'binary');
+                        // if image type is unknown, then detect type from image data
                         if (getExtension(rel.Target) === 'unknown') {
                             var buffer = arrayBufferToBuffer(rel.data);
                             imgType = imageType(buffer);
