@@ -1008,6 +1008,7 @@ declare namespace PptxGenJS {
 		link: string
 		onlineVideoLink?: string
 		type?: MediaType
+		extension?: string
 		thumbnail?: {
 			link: string,
 			extension: string,

@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-04-09T20:13:08.169Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-09T20:22:07.037Z */
 'use strict';
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
