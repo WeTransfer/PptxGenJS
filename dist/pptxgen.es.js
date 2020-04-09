@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-04-09T20:22:07.047Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-09T20:28:46.010Z */
 import * as JSZip from 'jszip';
 import arrayBufferToBuffer from 'arraybuffer-to-buffer';
 import imageType from 'image-type';

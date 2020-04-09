@@ -1005,7 +1005,7 @@ declare namespace PptxGenJS {
 		extension?: string
 	}
 	export interface IMediaOpts extends PositionOptions, OptsDataOrPath {
-		link: string
+		link?: string
 		onlineVideoLink?: string
 		type?: MediaType
 		extension?: string
