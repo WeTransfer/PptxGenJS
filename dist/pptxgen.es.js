@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-04-09T20:28:46.010Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-13T23:43:13.999Z */
 import * as JSZip from 'jszip';
 import arrayBufferToBuffer from 'arraybuffer-to-buffer';
 import imageType from 'image-type';
@@ -2183,7 +2183,9 @@ function genXmlTextRunProperties(opts, isDefault) {
             throw new Error("ERROR: 'hyperlink requires either `url` or `slide`'");
         else if (opts.hyperlink.url) {
             // TODO: (20170410): FUTURE-FEATURE: color (link is always blue in Keynote and PPT online, so usual text run above isnt honored for links..?)
-            //runProps += '<a:uFill>'+ genXmlColorSelection('0000FF') +'</a:uFill>'; // Breaks PPT2010! (Issue#74)
+            // runProps += '<a:uFill>'+ genXmlColorSelection('0000FF') +'</a:uFill>'; // Breaks PPT2010! (Issue#74)
+            if (opts.color)
+                runProps += '<a:uFill>' + genXmlColorSelection(opts.color) + '</a:uFill>';
             runProps +=
                 '<a:hlinkClick r:id="rId' +
                     opts.hyperlink.rId +
