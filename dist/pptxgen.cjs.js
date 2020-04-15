@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-04-15T16:55:21.452Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-15T17:03:52.946Z */
 'use strict';
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -2209,8 +2209,7 @@ function genXmlTextRunProperties(opts, isDefault) {
     }
     // END runProperties
     runProps += '</' + runPropsTag + '>';
-    console.error('runProps = ', JSON.stringify(runProps));
-    return runProps;
+    throw new Error('runProps = ' + JSON.stringify(runProps));
 }
 /**
  * Builds `<a:r></a:r>` text runs for `<a:p>` paragraphs in textBody

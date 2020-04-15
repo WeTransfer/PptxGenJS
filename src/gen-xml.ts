@@ -995,7 +995,7 @@ function genXmlTextRunProperties(opts: IObjectOptions | ITextOpts, isDefault: bo
 
 	// END runProperties
 	runProps += '</' + runPropsTag + '>'
-	console.error('runProps = ', JSON.stringify(runProps))
+	throw new Error('runProps = ' +  JSON.stringify(runProps))
 	return runProps
 }
 
