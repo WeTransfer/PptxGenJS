@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-04-15T02:57:08.133Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-15T16:55:21.467Z */
 import * as JSZip from 'jszip';
 import arrayBufferToBuffer from 'arraybuffer-to-buffer';
 import imageType from 'image-type';
@@ -2190,8 +2190,9 @@ function genXmlTextRunProperties(opts, isDefault) {
                     '" invalidUrl="" action="" tgtFrame="" tooltip="' +
                     (opts.hyperlink.tooltip ? encodeXmlEntities(opts.hyperlink.tooltip) : '') +
                     '" history="1" highlightClick="0" endSnd="0">';
-            if (opts.color)
+            if (opts.color) {
                 runProps += '<a:extLst><a:ext uri="{A12FA001-AC4F-418D-AE19-62706E023703}"><ahyp:hlinkClr xmlns:ahyp="http://schemas.microsoft.com/office/drawing/2018/hyperlinkcolor" val="tx"/></a:ext></a:extLst></a:hlinkClick>';
+            }
         }
         else if (opts.hyperlink.slide) {
             runProps +=
@@ -2204,6 +2205,7 @@ function genXmlTextRunProperties(opts, isDefault) {
     }
     // END runProperties
     runProps += '</' + runPropsTag + '>';
+    console.error('runProps = ', JSON.stringify(runProps));
     return runProps;
 }
 /**

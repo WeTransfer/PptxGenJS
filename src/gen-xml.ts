@@ -980,7 +980,9 @@ function genXmlTextRunProperties(opts: IObjectOptions | ITextOpts, isDefault: bo
 				'" invalidUrl="" action="" tgtFrame="" tooltip="' +
 				(opts.hyperlink.tooltip ? encodeXmlEntities(opts.hyperlink.tooltip) : '') +
 				'" history="1" highlightClick="0" endSnd="0">'
-			if (opts.color) runProps += '<a:extLst><a:ext uri="{A12FA001-AC4F-418D-AE19-62706E023703}"><ahyp:hlinkClr xmlns:ahyp="http://schemas.microsoft.com/office/drawing/2018/hyperlinkcolor" val="tx"/></a:ext></a:extLst></a:hlinkClick>'
+			if (opts.color) {
+				runProps += '<a:extLst><a:ext uri="{A12FA001-AC4F-418D-AE19-62706E023703}"><ahyp:hlinkClr xmlns:ahyp="http://schemas.microsoft.com/office/drawing/2018/hyperlinkcolor" val="tx"/></a:ext></a:extLst></a:hlinkClick>'
+			}
 		} else if (opts.hyperlink.slide) {
 			runProps +=
 				'<a:hlinkClick r:id="rId' +
@@ -993,7 +995,7 @@ function genXmlTextRunProperties(opts: IObjectOptions | ITextOpts, isDefault: bo
 
 	// END runProperties
 	runProps += '</' + runPropsTag + '>'
-
+	console.error('runProps = ', JSON.stringify(runProps))
 	return runProps
 }
 
