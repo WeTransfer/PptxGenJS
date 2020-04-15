@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-04-14T20:41:51.427Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-15T02:57:08.133Z */
 import * as JSZip from 'jszip';
 import arrayBufferToBuffer from 'arraybuffer-to-buffer';
 import imageType from 'image-type';
@@ -2184,8 +2184,6 @@ function genXmlTextRunProperties(opts, isDefault) {
         else if (opts.hyperlink.url) {
             // TODO: (20170410): FUTURE-FEATURE: color (link is always blue in Keynote and PPT online, so usual text run above isnt honored for links..?)
             // runProps += '<a:uFill>'+ genXmlColorSelection('0000FF') +'</a:uFill>'; // Breaks PPT2010! (Issue#74)
-            if (opts.color)
-                runProps += '<a:solidFill><a:srgbClr val="' + genXmlColorSelection(opts.color) + '"/></a:solidFill>';
             runProps +=
                 '<a:hlinkClick r:id="rId' +
                     opts.hyperlink.rId +
@@ -2193,7 +2191,7 @@ function genXmlTextRunProperties(opts, isDefault) {
                     (opts.hyperlink.tooltip ? encodeXmlEntities(opts.hyperlink.tooltip) : '') +
                     '" history="1" highlightClick="0" endSnd="0">';
             if (opts.color)
-                runProps += '<a:extLst><a:ext uri="{A12FA001-AC4F-418D-AE19-62706E023703}"><ahyp:hlinkClr xmlns:ahyp="http://schemas.microsoft.com/office/drawing/2018/hyperlinkcolor" val="tx"/></a:ext></a:extLst>';
+                runProps += '<a:extLst><a:ext uri="{A12FA001-AC4F-418D-AE19-62706E023703}"><ahyp:hlinkClr xmlns:ahyp="http://schemas.microsoft.com/office/drawing/2018/hyperlinkcolor" val="tx"/></a:ext></a:extLst></a:hlinkClick>';
         }
         else if (opts.hyperlink.slide) {
             runProps +=
