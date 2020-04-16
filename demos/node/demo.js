@@ -11,7 +11,7 @@
  */
 
 // ============================================================================
-import { execGenSlidesFuncs} from "../common/demos.mjs";
+let demo = require("../common/demos.js");
 let verboseMode = true;
 
 if (verboseMode) console.log(`\n-----==~==[ STARTING DEMO ]==~==-----\n`);
@@ -19,7 +19,7 @@ if (verboseMode) console.log(`\n-----==~==[ STARTING DEMO ]==~==-----\n`);
 // STEP 2: Run predefined test from `../common/demos.js` //-OR-// Local Tests (callbacks, etc.)
 Promise.resolve()
 	.then(() => {
-		return execGenSlidesFuncs();
+		return demo.execGenSlidesFuncs();
 	})
 	.catch(err => {
 		throw err;
