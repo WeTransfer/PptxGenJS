@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-04-17T19:46:02.837Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-17T20:13:15.883Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5757,15 +5757,6 @@ function encodeSlideMediaRels(layout, zip) {
                     res.on('data', function (chunk) { return (rawData += chunk); });
                     res.on('end', function () {
                         rel.data = Buffer.from(rawData, 'binary');
-                        // If image type is unknown, then detect type from image data.
-                        // This will happen if a URL doesn't include the file extension
-                        // if (!VALID_MEDIA_TYPES.includes(getExtension(rel.Target))) {
-                        // 	const buffer = arrayBufferToBuffer(rel.data);
-                        // 	imgType = imageType(buffer);
-                        // 	if (imgType !== null) {
-                        // 		rel.Target = rel.Target.concat(imgType.ext)	
-                        // 	}
-                        // }
                         zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                         resolve('done');
                     });

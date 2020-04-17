@@ -32,7 +32,6 @@ export const AXIS_ID_VALUE_SECONDARY: string = '2094734553'
 export const AXIS_ID_CATEGORY_PRIMARY: string = '2094734554'
 export const AXIS_ID_CATEGORY_SECONDARY: string = '2094734555'
 export const AXIS_ID_SERIES_PRIMARY: string = '2094734556'
-export const VALID_MEDIA_TYPES = ['jpg', 'jpeg', 'png', 'gsif', 'svg', 'mp4', 'm4v', 'mov'];
 
 export type JSZIP_OUTPUT_TYPE = 'arraybuffer' | 'base64' | 'binarystring' | 'blob' | 'nodebuffer' | 'uint8array'
 export type WRITE_OUTPUT_TYPE = JSZIP_OUTPUT_TYPE | 'STREAM'
