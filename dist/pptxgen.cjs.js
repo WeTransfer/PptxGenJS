@@ -1,11 +1,7 @@
-/* PptxGenJS 3.2.0-beta @ 2020-04-16T01:54:55.313Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-17T19:46:02.837Z */
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 var JSZip = require('jszip');
-var arrayBufferToBuffer = _interopDefault(require('arraybuffer-to-buffer'));
-var imageType = _interopDefault(require('image-type'));
 
 /**
  * PptxGenJS Enums
@@ -5712,9 +5708,6 @@ function createGridLineElement(glOpts) {
 /**
  * PptxGenJS: Media Methods
  */
-var getExtension = function (filename) {
-    return filename.split('.').pop();
-};
 // for local files and non https files
 function zipBase64MediaData(fs, rel, zip) {
     if (rel.type !== 'online' && rel.type !== 'hyperlink') {
@@ -5763,16 +5756,16 @@ function encodeSlideMediaRels(layout, zip) {
                     res.setEncoding('binary'); // IMPORTANT: Only binary encoding works
                     res.on('data', function (chunk) { return (rawData += chunk); });
                     res.on('end', function () {
-                        var imgType = null;
                         rel.data = Buffer.from(rawData, 'binary');
-                        // if image type is unknown, then detect type from image data
-                        if (getExtension(rel.Target) === 'unknown') {
-                            var buffer = arrayBufferToBuffer(rel.data);
-                            imgType = imageType(buffer);
-                            if (imgType !== null) {
-                                rel.Target = rel.Target.replace('unknown', imgType.ext);
-                            }
-                        }
+                        // If image type is unknown, then detect type from image data.
+                        // This will happen if a URL doesn't include the file extension
+                        // if (!VALID_MEDIA_TYPES.includes(getExtension(rel.Target))) {
+                        // 	const buffer = arrayBufferToBuffer(rel.data);
+                        // 	imgType = imageType(buffer);
+                        // 	if (imgType !== null) {
+                        // 		rel.Target = rel.Target.concat(imgType.ext)	
+                        // 	}
+                        // }
                         zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                         resolve('done');
                     });
