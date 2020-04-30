@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-04-17T20:13:15.891Z */
+/* PptxGenJS 3.2.0-beta @ 2020-04-30T23:56:46.137Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -1722,9 +1722,10 @@ function slideObjectToXml(slide) {
                     slideItemObj.options.shadow.angle = (slideItemObj.options.shadow.angle || 270) * 60000;
                     slideItemObj.options.shadow.color = slideItemObj.options.shadow.color || '000000';
                     slideItemObj.options.shadow.opacity = (slideItemObj.options.shadow.opacity || 0.75) * 100000;
+                    slideItemObj.options.shadow.align = slideItemObj.options.shadow.align || 'bl';
                     strSlideXml += '<a:effectLst>';
                     strSlideXml += '<a:' + slideItemObj.options.shadow.type + 'Shdw sx="100000" sy="100000" kx="0" ky="0" ';
-                    strSlideXml += ' algn="bl" rotWithShape="0" blurRad="' + slideItemObj.options.shadow.blur + '" ';
+                    strSlideXml += ' algn="' + slideItemObj.options.shadow.align + '" rotWithShape="0" blurRad="' + slideItemObj.options.shadow.blur + '" ';
                     strSlideXml += ' dist="' + slideItemObj.options.shadow.offset + '" dir="' + slideItemObj.options.shadow.angle + '">';
                     strSlideXml += '<a:srgbClr val="' + slideItemObj.options.shadow.color + '">';
                     strSlideXml += '<a:alpha val="' + slideItemObj.options.shadow.opacity + '"/></a:srgbClr>';

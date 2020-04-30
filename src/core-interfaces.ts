@@ -73,6 +73,7 @@ export interface IShadowOptions {
 	blur?: number
 	offset?: number
 	color?: string
+	align?: 'b' | 'bl' | 'br' | 'ctr' | 'l' | 'r' | 't' | 'tl' | 'tr'
 }
 export interface IGlowOptions {
 	size: number
