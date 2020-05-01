@@ -492,9 +492,10 @@ function slideObjectToXml(slide: ISlide | ISlideLayout): string {
 					slideItemObj.options.shadow.color = slideItemObj.options.shadow.color || '000000'
 					slideItemObj.options.shadow.opacity = (slideItemObj.options.shadow.opacity || 0.75) * 100000
 					slideItemObj.options.shadow.align = slideItemObj.options.shadow.align || 'bl'
+					slideItemObj.options.shadow.size = (slideItemObj.options.shadow.size || 1) * 100000
 
 					strSlideXml += '<a:effectLst>'
-					strSlideXml += '<a:' + slideItemObj.options.shadow.type + 'Shdw sx="100000" sy="100000" '
+					strSlideXml += '<a:' + slideItemObj.options.shadow.type + 'Shdw sx="' + slideItemObj.options.shadow.size + '" sy="' + slideItemObj.options.shadow.size +'"' 
 					if (slideItemObj.options.shadow.offset) {
 						strSlideXml += ' dist="' + slideItemObj.options.shadow.offset + '"'
 					}

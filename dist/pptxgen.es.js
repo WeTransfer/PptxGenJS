@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-05-01T01:26:39.814Z */
+/* PptxGenJS 3.2.0-beta @ 2020-05-01T02:06:31.195Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -1727,8 +1727,9 @@ function slideObjectToXml(slide) {
                     slideItemObj.options.shadow.color = slideItemObj.options.shadow.color || '000000';
                     slideItemObj.options.shadow.opacity = (slideItemObj.options.shadow.opacity || 0.75) * 100000;
                     slideItemObj.options.shadow.align = slideItemObj.options.shadow.align || 'bl';
+                    slideItemObj.options.shadow.size = (slideItemObj.options.shadow.size || 1) * 100000;
                     strSlideXml += '<a:effectLst>';
-                    strSlideXml += '<a:' + slideItemObj.options.shadow.type + 'Shdw sx="100000" sy="100000" ';
+                    strSlideXml += '<a:' + slideItemObj.options.shadow.type + 'Shdw sx="' + slideItemObj.options.shadow.size + '" sy="' + slideItemObj.options.shadow.size + '"';
                     if (slideItemObj.options.shadow.offset) {
                         strSlideXml += ' dist="' + slideItemObj.options.shadow.offset + '"';
                     }
