@@ -68,8 +68,8 @@ export interface IBorderOptions {
 }
 export interface IShadowOptions {
 	type: 'outer' | 'inner' | 'none'
-	angle: number
 	opacity: number
+	angle?: number
 	blur?: number
 	offset?: number
 	color?: string

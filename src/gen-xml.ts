@@ -486,7 +486,7 @@ function slideObjectToXml(slide: ISlide | ISlideLayout): string {
 					if (slideItemObj.options.shadow.offset && slideItemObj.options.shadow.offset !==0) {
 						slideItemObj.options.shadow.offset = (slideItemObj.options.shadow.offset || 4) * ONEPT
 					}
-					if (slideItemObj.options.shadow.angle !==0) {
+					if (slideItemObj.options.shadow.offset && slideItemObj.options.shadow.angle !==0) {
 						slideItemObj.options.shadow.angle = (slideItemObj.options.shadow.angle || 270) * 60000
 					}
 					slideItemObj.options.shadow.color = slideItemObj.options.shadow.color || '000000'
@@ -499,7 +499,9 @@ function slideObjectToXml(slide: ISlide | ISlideLayout): string {
 					if (slideItemObj.options.shadow.offset) {
 						strSlideXml += ' dist="' + slideItemObj.options.shadow.offset + '"'
 					}
-					strSlideXml += ' dir="' + slideItemObj.options.shadow.angle + '">'
+					if (slideItemObj.options.shadow.angle) {
+						strSlideXml += ' dir="' + slideItemObj.options.shadow.angle + '">'
+					}
 					strSlideXml += '<a:srgbClr val="' + slideItemObj.options.shadow.color + '">'
 					strSlideXml += '<a:alpha val="' + slideItemObj.options.shadow.opacity + '"/></a:srgbClr>'
 					strSlideXml += '</a:outerShdw>'
