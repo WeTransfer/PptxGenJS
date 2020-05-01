@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-05-01T00:21:58.329Z */
+/* PptxGenJS 3.2.0-beta @ 2020-05-01T00:49:32.018Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -1718,15 +1718,22 @@ function slideObjectToXml(slide) {
                 if (slideItemObj.options.shadow) {
                     slideItemObj.options.shadow.type = slideItemObj.options.shadow.type || 'outer';
                     slideItemObj.options.shadow.blur = (slideItemObj.options.shadow.blur || 8) * ONEPT;
-                    slideItemObj.options.shadow.offset = (slideItemObj.options.shadow.offset || 4) * ONEPT;
-                    slideItemObj.options.shadow.angle = (slideItemObj.options.shadow.angle || 270) * 60000;
+                    if (slideItemObj.options.shadow.offset && slideItemObj.options.shadow.offset !== 0) {
+                        slideItemObj.options.shadow.offset = (slideItemObj.options.shadow.offset || 4) * ONEPT;
+                    }
+                    if (slideItemObj.options.shadow.angle !== 0) {
+                        slideItemObj.options.shadow.angle = (slideItemObj.options.shadow.angle || 270) * 60000;
+                    }
                     slideItemObj.options.shadow.color = slideItemObj.options.shadow.color || '000000';
                     slideItemObj.options.shadow.opacity = (slideItemObj.options.shadow.opacity || 0.75) * 100000;
                     slideItemObj.options.shadow.align = slideItemObj.options.shadow.align || 'bl';
                     strSlideXml += '<a:effectLst>';
                     strSlideXml += '<a:' + slideItemObj.options.shadow.type + 'Shdw sx="100000" sy="100000" kx="0" ky="0" ';
-                    strSlideXml += ' algn="ctr" rotWithShape="0" blurRad="' + slideItemObj.options.shadow.blur + '" ';
-                    strSlideXml += ' dist="' + slideItemObj.options.shadow.offset + '" dir="' + slideItemObj.options.shadow.angle + '">';
+                    strSlideXml += ' algn="' + slideItemObj.options.shadow.align + '" rotWithShape="0" blurRad="' + slideItemObj.options.shadow.blur + '" ';
+                    if (slideItemObj.options.shadow.offset) {
+                        strSlideXml += ' dist="' + slideItemObj.options.shadow.offset + '"';
+                    }
+                    strSlideXml += ' dir="' + slideItemObj.options.shadow.angle + '">';
                     strSlideXml += '<a:srgbClr val="' + slideItemObj.options.shadow.color + '">';
                     strSlideXml += '<a:alpha val="' + slideItemObj.options.shadow.opacity + '"/></a:srgbClr>';
                     strSlideXml += '</a:outerShdw>';
