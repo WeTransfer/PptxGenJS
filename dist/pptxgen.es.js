@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-06-23T16:21:37.576Z */
+/* PptxGenJS 3.2.0-beta @ 2020-06-23T16:37:32.707Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2087,7 +2087,7 @@ function genXmlParagraphProperties(textObj, isDefault) {
         // EX: Unicode Character 'BULLET' (U+2022) ==> '<a:buChar char="&#x2022;"/>'
         if (typeof textObj.options.bullet === 'object') {
             if (textObj.options.bullet.leftMargin) {
-                bulletLvl0Margin = textObj.options.bullet.leftMargin * 10000;
+                bulletLvl0Margin = textObj.options.bullet.leftMargin * 100000;
             }
             if (textObj.options.bullet.type) {
                 if (textObj.options.bullet.type.toString().toLowerCase() === 'number') {
