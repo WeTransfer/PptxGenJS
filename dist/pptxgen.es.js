@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-06-23T16:37:32.707Z */
+/* PptxGenJS 3.2.0-beta @ 2020-06-23T17:30:34.022Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2112,11 +2112,13 @@ function genXmlParagraphProperties(textObj, isDefault) {
                 }
                 paragraphPropXml +=
                     ' marL="' +
-                        (textObj.options.indentLevel && textObj.options.indentLevel > 0 ? bulletLvl0Margin + bulletLvl0Margin * textObj.options.indentLevel : bulletLvl0Margin) +
+                        (textObj.options.indentLevel && textObj.options.indentLevel > 0
+                            ? bulletLvl0Margin + bulletLvl0Margin * textObj.options.indentLevel
+                            : bulletLvl0Margin) +
                         '" indent="-' +
                         bulletLvl0Margin +
                         '"';
-                strXmlBullet = '<a:buSzPct val="100000"/><a:buChar char="' + bulletCode + '"/>';
+                strXmlBullet = '<a:buSzPct val="100000"/><a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/><a:buChar char="&#x' + bulletCode + '"/>';
             }
         }
         else if (textObj.options.bullet === true) {
