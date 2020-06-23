@@ -877,6 +877,9 @@ function genXmlParagraphProperties(textObj: ISlideObject | IText, isDefault: boo
 		// NOTE: OOXML uses the unicode character set for Bullets
 		// EX: Unicode Character 'BULLET' (U+2022) ==> '<a:buChar char="&#x2022;"/>'
 		if (typeof textObj.options.bullet === 'object') {
+			if (textObj.options.bullet.leftMargin) {
+				bulletLvl0Margin = textObj.options.bullet.leftMargin * 10000;
+			}
 			if (textObj.options.bullet.type) {
 				if (textObj.options.bullet.type.toString().toLowerCase() === 'number') {
 					paragraphPropXml +=

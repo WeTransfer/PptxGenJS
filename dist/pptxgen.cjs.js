@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-06-04T22:59:44.435Z */
+/* PptxGenJS 3.2.0-beta @ 2020-06-23T16:21:37.570Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2088,6 +2088,9 @@ function genXmlParagraphProperties(textObj, isDefault) {
         // NOTE: OOXML uses the unicode character set for Bullets
         // EX: Unicode Character 'BULLET' (U+2022) ==> '<a:buChar char="&#x2022;"/>'
         if (typeof textObj.options.bullet === 'object') {
+            if (textObj.options.bullet.leftMargin) {
+                bulletLvl0Margin = textObj.options.bullet.leftMargin * 10000;
+            }
             if (textObj.options.bullet.type) {
                 if (textObj.options.bullet.type.toString().toLowerCase() === 'number') {
                     paragraphPropXml +=

@@ -1149,6 +1149,7 @@ declare namespace PptxGenJS {
 					code?: string
 					style?: string
 					startAt?: number
+					leftMargin?: number
 			  }
 		charSpacing?: number
 		color?: string
