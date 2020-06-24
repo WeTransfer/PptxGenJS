@@ -863,6 +863,18 @@ export function addTextDefinition(target: ISlide, text: string | IText[], opts: 
 			newObject.options.bodyProp.tIns = inch2Emu(opt.inset)
 			newObject.options.bodyProp.bIns = inch2Emu(opt.inset)
 		}
+		if (opt.bodyProp.lIns) {
+			newObject.options.bodyProp.lIns = inch2Emu(opt.bodyProp.lIns)
+		}
+		if (opt.bodyProp.rIns) {
+			newObject.options.bodyProp.rIns = inch2Emu(opt.bodyProp.rIns)
+		}
+		if (opt.bodyProp.tIns) {
+			newObject.options.bodyProp.tIns = inch2Emu(opt.bodyProp.tIns)
+		}
+		if (opt.bodyProp.bIns) {
+			newObject.options.bodyProp.bIns = inch2Emu(opt.bodyProp.bIns)
+		}
 	}
 
 	// STEP 2: Transform `align`/`valign` to XML values, store in bodyProp for XML gen

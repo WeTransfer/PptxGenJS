@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-06-23T17:37:47.465Z */
+/* PptxGenJS 3.2.0-beta @ 2020-06-24T21:57:38.623Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2087,7 +2087,7 @@ function genXmlParagraphProperties(textObj, isDefault) {
         // EX: Unicode Character 'BULLET' (U+2022) ==> '<a:buChar char="&#x2022;"/>'
         if (typeof textObj.options.bullet === 'object') {
             if (textObj.options.bullet.leftMargin) {
-                bulletLvl0Margin = textObj.options.bullet.leftMargin * 100000;
+                bulletLvl0Margin = inch2Emu(textObj.options.bullet.leftMargin);
             }
             if (textObj.options.bullet.type) {
                 if (textObj.options.bullet.type.toString().toLowerCase() === 'number') {
@@ -3714,6 +3714,18 @@ function addTextDefinition(target, text, opts, isPlaceholder) {
             newObject.options.bodyProp.rIns = inch2Emu(opt.inset);
             newObject.options.bodyProp.tIns = inch2Emu(opt.inset);
             newObject.options.bodyProp.bIns = inch2Emu(opt.inset);
+        }
+        if (opt.bodyProp.lIns) {
+            newObject.options.bodyProp.lIns = inch2Emu(opt.bodyProp.lIns);
+        }
+        if (opt.bodyProp.rIns) {
+            newObject.options.bodyProp.rIns = inch2Emu(opt.bodyProp.rIns);
+        }
+        if (opt.bodyProp.tIns) {
+            newObject.options.bodyProp.tIns = inch2Emu(opt.bodyProp.tIns);
+        }
+        if (opt.bodyProp.bIns) {
+            newObject.options.bodyProp.bIns = inch2Emu(opt.bodyProp.bIns);
         }
     }
     // STEP 2: Transform `align`/`valign` to XML values, store in bodyProp for XML gen
