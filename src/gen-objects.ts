@@ -863,16 +863,16 @@ export function addTextDefinition(target: ISlide, text: string | IText[], opts: 
 			newObject.options.bodyProp.tIns = inch2Emu(opt.inset)
 			newObject.options.bodyProp.bIns = inch2Emu(opt.inset)
 		}
-		if (opt.bodyProp.lIns) {
+		if (opt.bodyProp.lIns !== undefined) {
 			newObject.options.bodyProp.lIns = inch2Emu(opt.bodyProp.lIns)
 		}
-		if (opt.bodyProp.rIns) {
+		if (opt.bodyProp.rIns !== undefined) {
 			newObject.options.bodyProp.rIns = inch2Emu(opt.bodyProp.rIns)
 		}
-		if (opt.bodyProp.tIns) {
+		if (opt.bodyProp.tIns !== undefined) {
 			newObject.options.bodyProp.tIns = inch2Emu(opt.bodyProp.tIns)
 		}
-		if (opt.bodyProp.bIns) {
+		if (opt.bodyProp.bIns !== undefined) {
 			newObject.options.bodyProp.bIns = inch2Emu(opt.bodyProp.bIns)
 		}
 	}

@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-06-24T21:57:38.623Z */
+/* PptxGenJS 3.2.0-beta @ 2020-06-24T22:34:59.037Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -3715,16 +3715,16 @@ function addTextDefinition(target, text, opts, isPlaceholder) {
             newObject.options.bodyProp.tIns = inch2Emu(opt.inset);
             newObject.options.bodyProp.bIns = inch2Emu(opt.inset);
         }
-        if (opt.bodyProp.lIns) {
+        if (opt.bodyProp.lIns !== undefined) {
             newObject.options.bodyProp.lIns = inch2Emu(opt.bodyProp.lIns);
         }
-        if (opt.bodyProp.rIns) {
+        if (opt.bodyProp.rIns !== undefined) {
             newObject.options.bodyProp.rIns = inch2Emu(opt.bodyProp.rIns);
         }
-        if (opt.bodyProp.tIns) {
+        if (opt.bodyProp.tIns !== undefined) {
             newObject.options.bodyProp.tIns = inch2Emu(opt.bodyProp.tIns);
         }
-        if (opt.bodyProp.bIns) {
+        if (opt.bodyProp.bIns !== undefined) {
             newObject.options.bodyProp.bIns = inch2Emu(opt.bodyProp.bIns);
         }
     }
