@@ -232,6 +232,7 @@ export interface IImageOpts extends PositionOptions, OptsDataOrPath {
 	placeholder?: any
 	rotate?: number
 	extension?: string
+	shadow?: IShadowOptions
 }
 
 export interface MediaThumbnail {
@@ -244,6 +245,7 @@ export interface IMediaOpts extends PositionOptions, OptsDataOrPath {
 	type?: MediaType
 	extension?: string
 	thumbnail?: MediaThumbnail
+	shadow?: IShadowOptions
 }
 
 export interface IShapeOptions extends PositionOptions {

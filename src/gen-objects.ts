@@ -322,6 +322,7 @@ export function addImageDefinition(target: ISlide, opt: IImageOpts) {
 		image: null,
 		imageRid: null,
 		hyperlink: null,
+		shadow: null,
 	}
 	// FIRST: Set vars for this image (object param replaces positional args in 1.1.0)
 	let intPosX = opt.x || 0
@@ -375,6 +376,7 @@ export function addImageDefinition(target: ISlide, opt: IImageOpts) {
 	// FIXME: Measure actual image when no intWidth/intHeight params passed
 	// ....: This is an async process: we need to make getSizeFromImage use callback, then set H/W...
 	// if ( !intWidth || !intHeight ) { var imgObj = getSizeFromImage(strImagePath);
+	correctShadowOptions(opt.shadow)
 	newObject.options = {
 		x: intPosX || 0,
 		y: intPosY || 0,
@@ -384,6 +386,7 @@ export function addImageDefinition(target: ISlide, opt: IImageOpts) {
 		sizing: sizing,
 		placeholder: opt.placeholder,
 		rotate: opt.rotate || 0,
+		shadow: opt.shadow,
 	}
 
 	// STEP 4: Add this image to this Slide Rels (rId/rels count spans all slides! Count all images to get next rId)
@@ -488,10 +491,13 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 	slideData.options = {}
 
 	// STEP 3: Set media properties & options
+	correctShadowOptions(opt.shadow)
+
 	slideData.options.x = intPosX
 	slideData.options.y = intPosY
 	slideData.options.w = intSizeX
 	slideData.options.h = intSizeY
+	slideData.options.shadow = opt.shadow
 
 	// STEP 4: Add this media to this Slide Rels (rId/rels count spans all slides! Count all media to get next rId)
 	// NOTE: rId starts at 2 (hence the intRels+1 below) as slideLayout.xml is rId=1!
