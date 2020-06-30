@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-06-30T19:25:53.851Z */
+/* PptxGenJS 3.2.0-beta @ 2020-06-30T19:50:13.453Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -1324,6 +1324,35 @@ var imageSizingXml = {
         return '<a:srcRect l="' + lPerc + '" r="' + rPerc + '" t="' + tPerc + '" b="' + bPerc + '"/><a:stretch/>';
     },
 };
+function addShadowToObject(slideItemObj, strSlideXml) {
+    // EFFECTS > SHADOW: REF: @see http://officeopenxml.com/drwSp-effects.php
+    slideItemObj.options.shadow.type = slideItemObj.options.shadow.type || 'outer';
+    slideItemObj.options.shadow.blur = (slideItemObj.options.shadow.blur || 8) * ONEPT;
+    if (slideItemObj.options.shadow.offset && slideItemObj.options.shadow.offset !== 0) {
+        slideItemObj.options.shadow.offset = (slideItemObj.options.shadow.offset || 4) * ONEPT;
+    }
+    if (slideItemObj.options.shadow.offset && slideItemObj.options.shadow.angle !== 0) {
+        slideItemObj.options.shadow.angle = (slideItemObj.options.shadow.angle || 270) * 60000;
+    }
+    slideItemObj.options.shadow.color = slideItemObj.options.shadow.color || '000000';
+    slideItemObj.options.shadow.opacity = (slideItemObj.options.shadow.opacity || 0.75) * 100000;
+    slideItemObj.options.shadow.align = slideItemObj.options.shadow.align || 'bl';
+    slideItemObj.options.shadow.size = Math.round((slideItemObj.options.shadow.size || 1) * 100000);
+    strSlideXml += '<a:effectLst>';
+    strSlideXml += '<a:' + slideItemObj.options.shadow.type + 'Shdw sx="' + slideItemObj.options.shadow.size + '" sy="' + slideItemObj.options.shadow.size + '"';
+    if (slideItemObj.options.shadow.offset) {
+        strSlideXml += ' dist="' + slideItemObj.options.shadow.offset + '"';
+    }
+    if (slideItemObj.options.shadow.angle) {
+        strSlideXml += ' dir="' + slideItemObj.options.shadow.angle + '" kx="0" ky="0"';
+    }
+    strSlideXml += ' algn="' + slideItemObj.options.shadow.align + '" rotWithShape="0" blurRad="' + slideItemObj.options.shadow.blur + '" >';
+    strSlideXml += '<a:srgbClr val="' + slideItemObj.options.shadow.color + '">';
+    strSlideXml += '<a:alpha val="' + slideItemObj.options.shadow.opacity + '"/></a:srgbClr>';
+    strSlideXml += '</a:outerShdw>';
+    strSlideXml += '</a:effectLst>';
+    return strSlideXml;
+}
 /**
  * Transforms a slide or slideLayout to resulting XML string - Creates `ppt/slide*.xml`
  * @param {ISlide|ISlideLayout} slideObject - slide object created within createSlideObject
@@ -1714,33 +1743,8 @@ function slideObjectToXml(slide) {
                         strSlideXml += '<a:tailEnd type="' + slideItemObj.options.lineTail + '"/>';
                     strSlideXml += '</a:ln>';
                 }
-                // EFFECTS > SHADOW: REF: @see http://officeopenxml.com/drwSp-effects.php
                 if (slideItemObj.options.shadow) {
-                    slideItemObj.options.shadow.type = slideItemObj.options.shadow.type || 'outer';
-                    slideItemObj.options.shadow.blur = (slideItemObj.options.shadow.blur || 8) * ONEPT;
-                    if (slideItemObj.options.shadow.offset && slideItemObj.options.shadow.offset !== 0) {
-                        slideItemObj.options.shadow.offset = (slideItemObj.options.shadow.offset || 4) * ONEPT;
-                    }
-                    if (slideItemObj.options.shadow.offset && slideItemObj.options.shadow.angle !== 0) {
-                        slideItemObj.options.shadow.angle = (slideItemObj.options.shadow.angle || 270) * 60000;
-                    }
-                    slideItemObj.options.shadow.color = slideItemObj.options.shadow.color || '000000';
-                    slideItemObj.options.shadow.opacity = (slideItemObj.options.shadow.opacity || 0.75) * 100000;
-                    slideItemObj.options.shadow.align = slideItemObj.options.shadow.align || 'bl';
-                    slideItemObj.options.shadow.size = Math.round((slideItemObj.options.shadow.size || 1) * 100000);
-                    strSlideXml += '<a:effectLst>';
-                    strSlideXml += '<a:' + slideItemObj.options.shadow.type + 'Shdw sx="' + slideItemObj.options.shadow.size + '" sy="' + slideItemObj.options.shadow.size + '"';
-                    if (slideItemObj.options.shadow.offset) {
-                        strSlideXml += ' dist="' + slideItemObj.options.shadow.offset + '"';
-                    }
-                    if (slideItemObj.options.shadow.angle) {
-                        strSlideXml += ' dir="' + slideItemObj.options.shadow.angle + '" kx="0" ky="0"';
-                    }
-                    strSlideXml += ' algn="' + slideItemObj.options.shadow.align + '" rotWithShape="0" blurRad="' + slideItemObj.options.shadow.blur + '" >';
-                    strSlideXml += '<a:srgbClr val="' + slideItemObj.options.shadow.color + '">';
-                    strSlideXml += '<a:alpha val="' + slideItemObj.options.shadow.opacity + '"/></a:srgbClr>';
-                    strSlideXml += '</a:outerShdw>';
-                    strSlideXml += '</a:effectLst>';
+                    strSlideXml = addShadowToObject(slideItemObj, strSlideXml);
                 }
                 /* TODO: FUTURE: Text wrapping (copied from MS-PPTX export)
                     // Commented out b/c i'm not even sure this works - current code produces text that wraps in shapes and textboxes, so...
@@ -1807,40 +1811,15 @@ function slideObjectToXml(slide) {
                     strSlideXml += '  <a:stretch><a:fillRect/></a:stretch>';
                 }
                 strSlideXml += '</p:blipFill>';
-                // EFFECTS > SHADOW: REF: @see http://officeopenxml.com/drwSp-effects.php
-                if (slideItemObj.options.shadow) {
-                    slideItemObj.options.shadow.type = slideItemObj.options.shadow.type || 'outer';
-                    slideItemObj.options.shadow.blur = (slideItemObj.options.shadow.blur || 8) * ONEPT;
-                    if (slideItemObj.options.shadow.offset && slideItemObj.options.shadow.offset !== 0) {
-                        slideItemObj.options.shadow.offset = (slideItemObj.options.shadow.offset || 4) * ONEPT;
-                    }
-                    if (slideItemObj.options.shadow.offset && slideItemObj.options.shadow.angle !== 0) {
-                        slideItemObj.options.shadow.angle = (slideItemObj.options.shadow.angle || 270) * 60000;
-                    }
-                    slideItemObj.options.shadow.color = slideItemObj.options.shadow.color || '000000';
-                    slideItemObj.options.shadow.opacity = (slideItemObj.options.shadow.opacity || 0.75) * 100000;
-                    slideItemObj.options.shadow.align = slideItemObj.options.shadow.align || 'bl';
-                    slideItemObj.options.shadow.size = Math.round((slideItemObj.options.shadow.size || 1) * 100000);
-                    strSlideXml += '<a:effectLst>';
-                    strSlideXml += '<a:' + slideItemObj.options.shadow.type + 'Shdw sx="' + slideItemObj.options.shadow.size + '" sy="' + slideItemObj.options.shadow.size + '"';
-                    if (slideItemObj.options.shadow.offset) {
-                        strSlideXml += ' dist="' + slideItemObj.options.shadow.offset + '"';
-                    }
-                    if (slideItemObj.options.shadow.angle) {
-                        strSlideXml += ' dir="' + slideItemObj.options.shadow.angle + '" kx="0" ky="0"';
-                    }
-                    strSlideXml += ' algn="' + slideItemObj.options.shadow.align + '" rotWithShape="0" blurRad="' + slideItemObj.options.shadow.blur + '" >';
-                    strSlideXml += '<a:srgbClr val="' + slideItemObj.options.shadow.color + '">';
-                    strSlideXml += '<a:alpha val="' + slideItemObj.options.shadow.opacity + '"/></a:srgbClr>';
-                    strSlideXml += '</a:outerShdw>';
-                    strSlideXml += '</a:effectLst>';
-                }
                 strSlideXml += '<p:spPr>';
                 strSlideXml += ' <a:xfrm' + locationAttr + '>';
                 strSlideXml += '  <a:off x="' + x + '" y="' + y + '"/>';
                 strSlideXml += '  <a:ext cx="' + width + '" cy="' + height + '"/>';
                 strSlideXml += ' </a:xfrm>';
                 strSlideXml += ' <a:prstGeom prst="' + (rounding ? 'ellipse' : 'rect') + '"><a:avLst/></a:prstGeom>';
+                if (slideItemObj.options.shadow) {
+                    strSlideXml = addShadowToObject(slideItemObj, strSlideXml);
+                }
                 strSlideXml += '</p:spPr>';
                 strSlideXml += '</p:pic>';
                 break;
@@ -1863,6 +1842,9 @@ function slideObjectToXml(slide) {
                     strSlideXml += '   <a:ext cx="' + cx + '" cy="' + cy + '"/>';
                     strSlideXml += '  </a:xfrm>';
                     strSlideXml += '  <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>';
+                    if (slideItemObj.options.shadow) {
+                        strSlideXml = addShadowToObject(slideItemObj, strSlideXml);
+                    }
                     strSlideXml += ' </p:spPr>';
                     strSlideXml += '</p:pic>';
                 }
@@ -1893,6 +1875,9 @@ function slideObjectToXml(slide) {
                     strSlideXml += ' </p:nvPr>';
                     strSlideXml += ' </p:nvPicPr>';
                     strSlideXml += ' <p:blipFill><a:blip r:embed="rId' + (slideItemObj.mediaRid + 2) + '"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>'; // NOTE: Preview image is required!
+                    if (slideItemObj.options.shadow) {
+                        strSlideXml = addShadowToObject(slideItemObj, strSlideXml);
+                    }
                     strSlideXml += ' <p:spPr>';
                     strSlideXml += '  <a:xfrm' + locationAttr + '>';
                     strSlideXml += '   <a:off x="' + x + '" y="' + y + '"/>';
