@@ -926,7 +926,7 @@ function genXmlParagraphProperties(textObj: ISlideObject | IText, isDefault: boo
 					bulletLvl0Margin +
 					'"'
 				const bulletFontFace = textObj.options.bullet.fontFace ?  textObj.options.bullet.fontFace : 'Arial'
-				strXmlBullet = `<a:buSzPct val="100000"/><a:buFont typeface="${bulletFontFace}" panose="020B0604020202020204" pitchFamily="34" charset="0"/><a:buChar char="' + bulletCode + '"/>`
+				strXmlBullet = '<a:buSzPct val="100000"/><a:buFont typeface="' + bulletFontFace + '" panose="020B0604020202020204" pitchFamily="34" charset="0"/><a:buChar char="' + bulletCode + '"/>'
 			}
 		} else if (textObj.options.bullet === true) {
 			paragraphPropXml +=
