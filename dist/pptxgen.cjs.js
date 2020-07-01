@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-06-30T19:50:13.446Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-01T15:22:46.732Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2133,7 +2133,8 @@ function genXmlParagraphProperties(textObj, isDefault) {
                         '" indent="-' +
                         bulletLvl0Margin +
                         '"';
-                strXmlBullet = '<a:buSzPct val="100000"/><a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/><a:buChar char="' + bulletCode + '"/>';
+                var bulletFontFace = textObj.options.bullet.fontFace ? textObj.options.bullet.fontFace : 'Arial';
+                strXmlBullet = "<a:buSzPct val=\"100000\"/><a:buFont typeface=\"" + bulletFontFace + "\" panose=\"020B0604020202020204\" pitchFamily=\"34\" charset=\"0\"/><a:buChar char=\"' + bulletCode + '\"/>";
             }
         }
         else if (textObj.options.bullet === true) {
