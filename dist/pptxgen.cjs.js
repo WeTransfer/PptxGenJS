@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-02T20:49:00.797Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-02T21:10:37.019Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -3347,7 +3347,7 @@ function addImageDefinition(target, opt) {
  * @param {IMediaOpts} `opt` - media options
  */
 function addMediaDefinition(target, opt) {
-    var intRels = target.relsMedia.length + 1;
+    var intRels = getNewRelId(target);
     var intPosX = opt.x || 0;
     var intPosY = opt.y || 0;
     var intSizeX = opt.w || 2;
@@ -3402,14 +3402,17 @@ function addMediaDefinition(target, opt) {
         });
         slideData.mediaRid = target.relsMedia[target.relsMedia.length - 1].rId;
         // B: Add preview/overlay image
-        target.relsMedia.push({
-            path: opt.thumbnail.link,
-            data: '',
-            type: 'image/' + opt.thumbnail.extension,
-            extn: opt.thumbnail.extension,
-            rId: intRels + 2,
-            Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
-        });
+        if (opt.thumbnail) {
+            target.relsMedia.push({
+                path: opt.thumbnail.link,
+                data: '',
+                type: 'image/' + opt.thumbnail.extension,
+                extn: opt.thumbnail.extension,
+                rId: intRels + 2,
+                Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
+            });
+            slideData.imageRid = intRels + 2;
+        }
     }
     else {
         /* NOTE: Audio/Video files consume *TWO* rId's:
