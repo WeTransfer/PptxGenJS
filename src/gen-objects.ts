@@ -454,7 +454,7 @@ export function addImageDefinition(target: ISlide, opt: IImageOpts) {
  * @param {IMediaOpts} `opt` - media options
  */
 export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
-	let intRels = getNewRelId(target)
+	let intRels = getNewRelId(target) // target.relsMedia.length + 1
 	let intPosX = opt.x || 0
 	let intPosY = opt.y || 0
 	let intSizeX = opt.w || 2
@@ -508,23 +508,21 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 			data: 'dummy',
 			type: 'online',
 			extn: strExtn,
-			rId: intRels + 1,
+			rId: intRels,
 			Target: strLink,
 		})
 		slideData.mediaRid = target.relsMedia[target.relsMedia.length - 1].rId
 
 		// B: Add preview/overlay image
-		if (opt.thumbnail) {
-			target.relsMedia.push({
-				path: opt.thumbnail.link,
-				data: '',
-				type: 'image/' + opt.thumbnail.extension,
-				extn: opt.thumbnail.extension,
-				rId: intRels + 2,
-				Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
-			})
-			slideData.imageRid = intRels + 2
-		}
+		target.relsMedia.push({
+			path: opt.thumbnail.link,
+			data: '',
+			type: 'image/' + opt.thumbnail.extension,
+			extn: opt.thumbnail.extension,
+			rId: intRels + 1,
+			Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
+		})
+		slideData.imageRid = intRels + 1
 	} else {
 		/* NOTE: Audio/Video files consume *TWO* rId's:
 		 * <Relationship Id="rId2" Target="../media/media1.mov" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/video"/>
@@ -537,7 +535,7 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 			type: strType + '/' + strExtn,
 			extn: strExtn,
 			data: strData || '',
-			rId: intRels + 0,
+			rId: intRels,
 			Target: '../media/media-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + strExtn,
 		})
 		slideData.mediaRid = target.relsMedia[target.relsMedia.length - 1].rId

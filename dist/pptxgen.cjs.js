@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-02T21:10:37.019Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-02T21:38:42.245Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -3347,7 +3347,7 @@ function addImageDefinition(target, opt) {
  * @param {IMediaOpts} `opt` - media options
  */
 function addMediaDefinition(target, opt) {
-    var intRels = getNewRelId(target);
+    var intRels = getNewRelId(target); // target.relsMedia.length + 1
     var intPosX = opt.x || 0;
     var intPosY = opt.y || 0;
     var intSizeX = opt.w || 2;
@@ -3397,22 +3397,20 @@ function addMediaDefinition(target, opt) {
             data: 'dummy',
             type: 'online',
             extn: strExtn,
-            rId: intRels + 1,
+            rId: intRels,
             Target: strLink,
         });
         slideData.mediaRid = target.relsMedia[target.relsMedia.length - 1].rId;
         // B: Add preview/overlay image
-        if (opt.thumbnail) {
-            target.relsMedia.push({
-                path: opt.thumbnail.link,
-                data: '',
-                type: 'image/' + opt.thumbnail.extension,
-                extn: opt.thumbnail.extension,
-                rId: intRels + 2,
-                Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
-            });
-            slideData.imageRid = intRels + 2;
-        }
+        target.relsMedia.push({
+            path: opt.thumbnail.link,
+            data: '',
+            type: 'image/' + opt.thumbnail.extension,
+            extn: opt.thumbnail.extension,
+            rId: intRels + 1,
+            Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
+        });
+        slideData.imageRid = intRels + 1;
     }
     else {
         /* NOTE: Audio/Video files consume *TWO* rId's:
@@ -3425,7 +3423,7 @@ function addMediaDefinition(target, opt) {
             type: strType + '/' + strExtn,
             extn: strExtn,
             data: strData || '',
-            rId: intRels + 0,
+            rId: intRels,
             Target: '../media/media-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + strExtn,
         });
         slideData.mediaRid = target.relsMedia[target.relsMedia.length - 1].rId;
