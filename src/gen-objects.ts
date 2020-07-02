@@ -559,6 +559,7 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 				rId: intRels + 2,
 				Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
 			})
+			slideData.imageRid = target.relsMedia.length + 1
 		}
 	}
 

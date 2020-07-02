@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-01T16:00:00.999Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-02T20:20:27.322Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -3445,6 +3445,7 @@ function addMediaDefinition(target, opt) {
                 rId: intRels + 2,
                 Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
             });
+            slideData.imageRid = target.relsMedia.length + 1;
         }
     }
     // LAST
