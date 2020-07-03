@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-02T21:38:42.245Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-03T17:36:42.898Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5757,6 +5757,7 @@ function createGridLineElement(glOpts) {
 /**
  * PptxGenJS: Media Methods
  */
+var sharp = require('sharp');
 // for local files and non https files
 function zipBase64MediaData(fs, rel, zip) {
     if (rel.type !== 'online' && rel.type !== 'hyperlink') {
@@ -5806,8 +5807,24 @@ function encodeSlideMediaRels(layout, zip) {
                     res.on('data', function (chunk) { return (rawData += chunk); });
                     res.on('end', function () {
                         rel.data = Buffer.from(rawData, 'binary');
-                        zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
-                        resolve('done');
+                        // check for webp image and convert to png if so
+                        var image = sharp(rel.data);
+                        image
+                            .metadata()
+                            .then(function (metadata) {
+                            if (metadata.format === 'webp') {
+                                return image
+                                    .png()
+                                    .toBuffer();
+                            }
+                            else {
+                                return rel.data;
+                            }
+                        })
+                            .then(function (data) {
+                            zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
+                            resolve('done');
+                        });
                     });
                     res.on('error', function (ex) {
                         rel.data = IMG_BROKEN;

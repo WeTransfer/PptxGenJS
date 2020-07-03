@@ -6,6 +6,8 @@ import * as JSZip from 'jszip'
 import { IMG_BROKEN } from './core-enums'
 import { ISlide, ISlideLayout, ISlideRelMedia } from './core-interfaces'
 
+const sharp = require('sharp');
+
 const getExtension = (filename: string):string => {
 	return filename.split('.').pop();
 }
@@ -58,8 +60,23 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 							res.on('data', chunk => (rawData += chunk))
 							res.on('end', () => {
 								rel.data = Buffer.from(rawData, 'binary')
-								zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
-								resolve('done')
+								// check for webp image and convert to png if so
+								const image = sharp(rel.data)
+								image
+									.metadata()
+									.then((metadata) => {
+										if (metadata.format === 'webp') {
+											return image
+												.png()
+												.toBuffer();
+										} else {
+											return rel.data
+										}
+									})
+									.then((data) => {
+										zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
+										resolve('done')
+									})
 							})
 							res.on('error', ex => {
 								rel.data = IMG_BROKEN
