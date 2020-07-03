@@ -65,7 +65,7 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 								image
 									.metadata()
 									.then((metadata) => {
-										if (metadata.format === 'webp') {
+										if (metadata.format === 'webp' || metadata.format === 'svg') {
 											return image
 												.png()
 												.toBuffer();

@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-03T17:36:42.898Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-03T17:46:37.673Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5812,7 +5812,7 @@ function encodeSlideMediaRels(layout, zip) {
                         image
                             .metadata()
                             .then(function (metadata) {
-                            if (metadata.format === 'webp') {
+                            if (metadata.format === 'webp' || metadata.format === 'svg') {
                                 return image
                                     .png()
                                     .toBuffer();
