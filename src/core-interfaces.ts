@@ -596,6 +596,7 @@ export interface IPresentation {
 export interface IPresentationLib {
 	author: string
 	company: string
+	fontRels: IFontRel[]
 	presLayout: ILayout
 	revision: string
 	rtlMode: boolean
@@ -604,4 +605,16 @@ export interface IPresentationLib {
 	slides: ISlide[]
 	subject: string
 	title: string
+}
+
+export interface IFontRel {
+	fontName: string
+	fileName: string
+	Target?: string
+	rId?: number
+}
+
+export interface IFont {
+	fontName: string
+	fileName: string
 }

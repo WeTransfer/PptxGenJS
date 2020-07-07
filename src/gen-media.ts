@@ -4,7 +4,7 @@
 
 import * as JSZip from 'jszip'
 import { IMG_BROKEN } from './core-enums'
-import { ISlide, ISlideLayout, ISlideRelMedia } from './core-interfaces'
+import { IFontRel, ISlide, ISlideLayout, ISlideRelMedia } from './core-interfaces'
 
 const sharp = require('sharp');
 
@@ -135,6 +135,21 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 		})
 
 	return imageProms
+}
+
+export function encodeFontRels(fontRel: IFontRel, zip: JSZip): Promise<string> {
+	const fs = typeof require !== 'undefined' && typeof window === 'undefined' ? require('fs') : null // NodeJS
+	let imageProm: Promise<string> = new Promise((resolve, reject) => {
+		try {
+			fs.readFile(fontRel.fileName, function read(err, data) {
+				zip.file(fontRel.Target.replace('..', 'ppt'), data, { binary: true })
+				resolve('done')
+			})	
+		} catch (ex) {
+			reject('ERROR: Unable to read font: "' + fontRel.fileName + '"\n' + ex.toString())
+		}
+	})
+	return imageProm
 }
 
 /**

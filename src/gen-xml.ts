@@ -17,6 +17,7 @@ import {
 	SLIDE_OBJECT_TYPES,
 } from './core-enums'
 import {
+	IFontRel,
 	ILayout,
 	IObjectOptions,
 	IShadowOptions,
@@ -1452,7 +1453,7 @@ export function makeXmlCore(title: string, subject: string, author: string, revi
  * @param {ISlide[]} slides - Presenation Slides
  * @returns XML
  */
-export function makeXmlPresentationRels(slides: Array<ISlide>): string {
+export function makeXmlPresentationRels(slides: Array<ISlide>, fontRels: Array<IFontRel>): string {
 	let intRelNum = 1
 	let strXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + CRLF
 	strXml += '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
@@ -1479,7 +1480,13 @@ export function makeXmlPresentationRels(slides: Array<ISlide>): string {
 		(intRelNum + 4) +
 		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>' +
 		'</Relationships>'
-
+	fontRels.forEach((fontRel, index) => {
+		fontRels[index].rId = intRelNum + 4 + index
+		strXml +=
+			'<Relationship Id="rId' +
+			(fontRels[index].rId) +
+			'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target + '"/>'
+	})
 	return strXml
 }
 
@@ -1759,6 +1766,13 @@ export function makeXmlPresentation(pres: IPresentationLib): string {
 	// IMPORTANT: Presentations open without warning Without this line, however, the pres isnt preview in Finder anymore or viewable in iOS!
 	strXml += `<p:notesMasterIdLst><p:notesMasterId r:id="rId${pres.slides.length + 2}"/></p:notesMasterIdLst>`
 
+	// Step 3.5: Add embedded fonts
+	strXml += `<p:embeddedFontLst>`
+	pres.fontRels.forEach(fontRel => {
+		strXml += `<p:embeddedFont><p:font typeface="${fontRel.fontName}" pitchFamily="2" charset="77"/><p:regular r:id="${fontRel.rId}"/></p:embeddedFont>`
+	})
+	strXml += '</p:embeddedFontLst>'
+	
 	// STEP 4: Add sizes
 	strXml += `<p:sldSz cx="${pres.presLayout.width}" cy="${pres.presLayout.height}"/>`
 	strXml += `<p:notesSz cx="${pres.presLayout.height}" cy="${pres.presLayout.width}"/>`

@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-03T17:55:20.686Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-07T23:59:40.522Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2579,7 +2579,7 @@ function makeXmlCore(title, subject, author, revision) {
  * @param {ISlide[]} slides - Presenation Slides
  * @returns XML
  */
-function makeXmlPresentationRels(slides) {
+function makeXmlPresentationRels(slides, fontRels) {
     var intRelNum = 1;
     var strXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + CRLF;
     strXml += '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
@@ -2606,6 +2606,13 @@ function makeXmlPresentationRels(slides) {
             (intRelNum + 4) +
             '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>' +
             '</Relationships>';
+    fontRels.forEach(function (fontRel, index) {
+        fontRels[index].rId = intRelNum + 4 + index;
+        strXml +=
+            '<Relationship Id="rId' +
+                (fontRels[index].rId) +
+                '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target + '"/>';
+    });
     return strXml;
 }
 // XML-GEN: Functions that run 1-N times (once for each Slide)
@@ -2846,6 +2853,12 @@ function makeXmlPresentation(pres) {
     // IMPORTANT: Placing this before `<p:sldIdLst>` causes warning in modern powerpoint!
     // IMPORTANT: Presentations open without warning Without this line, however, the pres isnt preview in Finder anymore or viewable in iOS!
     strXml += "<p:notesMasterIdLst><p:notesMasterId r:id=\"rId" + (pres.slides.length + 2) + "\"/></p:notesMasterIdLst>";
+    // Step 3.5: Add embedded fonts
+    strXml += "<p:embeddedFontLst>";
+    pres.fontRels.forEach(function (fontRel) {
+        strXml += "<p:embeddedFont><p:font typeface=\"" + fontRel.fontName + "\" pitchFamily=\"2\" charset=\"77\"/><p:regular r:id=\"" + fontRel.rId + "\"/></p:embeddedFont>";
+    });
+    strXml += '</p:embeddedFontLst>';
     // STEP 4: Add sizes
     strXml += "<p:sldSz cx=\"" + pres.presLayout.width + "\" cy=\"" + pres.presLayout.height + "\"/>";
     strXml += "<p:notesSz cx=\"" + pres.presLayout.height + "\" cy=\"" + pres.presLayout.width + "\"/>";
@@ -5881,6 +5894,21 @@ function encodeSlideMediaRels(layout, zip) {
     });
     return imageProms;
 }
+function encodeFontRels(fontRel, zip) {
+    var fs = typeof require !== 'undefined' && typeof window === 'undefined' ? require('fs') : null; // NodeJS
+    var imageProm = new Promise(function (resolve, reject) {
+        try {
+            fs.readFile(fontRel.fileName, function read(err, data) {
+                zip.file(fontRel.Target.replace('..', 'ppt'), data, { binary: true });
+                resolve('done');
+            });
+        }
+        catch (ex) {
+            reject('ERROR: Unable to read font: "' + fontRel.fileName + '"\n' + ex.toString());
+        }
+    });
+    return imageProm;
+}
 /**
  * Create SVG preview image
  * @param {ISlideRelMedia} rel - slide rel
@@ -6096,6 +6124,7 @@ var PptxGenJS = /** @class */ (function () {
                 zip.folder('ppt/charts').folder('_rels');
                 zip.folder('ppt/embeddings');
                 zip.folder('ppt/media');
+                zip.folder('ppt/fonts');
                 zip.folder('ppt/slideLayouts').folder('_rels');
                 zip.folder('ppt/slideMasters').folder('_rels');
                 zip.folder('ppt/slides').folder('_rels');
@@ -6106,7 +6135,7 @@ var PptxGenJS = /** @class */ (function () {
                 zip.file('_rels/.rels', makeXmlRootRels());
                 zip.file('docProps/app.xml', makeXmlApp(_this.slides, _this.company)); // TODO: pass only `this` like below! 20200206
                 zip.file('docProps/core.xml', makeXmlCore(_this.title, _this.subject, _this.author, _this.revision)); // TODO: pass only `this` like below! 20200206
-                zip.file('ppt/_rels/presentation.xml.rels', makeXmlPresentationRels(_this.slides));
+                zip.file('ppt/_rels/presentation.xml.rels', makeXmlPresentationRels(_this.slides, _this.fontRels));
                 zip.file('ppt/theme/theme1.xml', makeXmlTheme());
                 zip.file('ppt/presentation.xml', makeXmlPresentation(_this));
                 zip.file('ppt/presProps.xml', makeXmlPresProps());
@@ -6120,6 +6149,9 @@ var PptxGenJS = /** @class */ (function () {
                     arrMediaPromises = arrMediaPromises.concat(encodeSlideMediaRels(layout, zip));
                 });
                 arrMediaPromises = arrMediaPromises.concat(encodeSlideMediaRels(_this.masterSlide, zip));
+                _this.fontRels.forEach(function (fontRel) {
+                    arrMediaPromises = arrMediaPromises.concat(encodeFontRels(fontRel, zip));
+                });
                 // D: Wait for Promises (if any) then generate the PPTX file
                 Promise.all(arrMediaPromises)
                     .catch(function (err) {
@@ -6397,6 +6429,13 @@ var PptxGenJS = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(PptxGenJS.prototype, "fontRels", {
+        get: function () {
+            return this._fontRels;
+        },
+        enumerable: true,
+        configurable: true
+    });
     // EXPORT METHODS
     /**
      * Export the current Presenation to stream
@@ -6591,6 +6630,16 @@ var PptxGenJS = /** @class */ (function () {
         if (opts === void 0) { opts = {}; }
         // @note `verbose` option is undocumented; used for verbose output of layout process
         genTableToSlides(this, tableElementId, opts, opts && opts.masterSlideName ? this.slideLayouts.filter(function (layout) { return layout.name === opts.masterSlideName; })[0] : null);
+    };
+    PptxGenJS.prototype.embedFonts = function (fonts) {
+        var _this = this;
+        fonts.forEach(function (font, index) {
+            _this._fontRels.push({
+                fontName: font.fontName,
+                fileName: font.fileName,
+                Target: '../fonts/font' + index + font.fileName.split('.').pop(),
+            });
+        });
     };
     return PptxGenJS;
 }());

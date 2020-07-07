@@ -63,6 +63,8 @@ import {
 	ShapeType,
 } from './core-enums'
 import {
+	IFont,
+	IFontRel,
 	ILayout,
 	ISlide,
 	ISlideLayout,
@@ -264,6 +266,13 @@ export default class PptxGenJS implements IPresentationLib {
 		return this._shapes
 	}
 
+	/** this Presentation's embedded fonts */
+	private _fontRels: IFontRel[]
+	public get fontRels(): IFontRel[] {
+		return this._fontRels
+	}
+
+
 	constructor() {
 		// Set available layouts
 		this.LAYOUTS = {
@@ -453,6 +462,7 @@ export default class PptxGenJS implements IPresentationLib {
 			zip.folder('ppt/charts').folder('_rels')
 			zip.folder('ppt/embeddings')
 			zip.folder('ppt/media')
+			zip.folder('ppt/fonts')
 			zip.folder('ppt/slideLayouts').folder('_rels')
 			zip.folder('ppt/slideMasters').folder('_rels')
 			zip.folder('ppt/slides').folder('_rels')
@@ -463,7 +473,7 @@ export default class PptxGenJS implements IPresentationLib {
 			zip.file('_rels/.rels', genXml.makeXmlRootRels())
 			zip.file('docProps/app.xml', genXml.makeXmlApp(this.slides, this.company)) // TODO: pass only `this` like below! 20200206
 			zip.file('docProps/core.xml', genXml.makeXmlCore(this.title, this.subject, this.author, this.revision)) // TODO: pass only `this` like below! 20200206
-			zip.file('ppt/_rels/presentation.xml.rels', genXml.makeXmlPresentationRels(this.slides))
+			zip.file('ppt/_rels/presentation.xml.rels', genXml.makeXmlPresentationRels(this.slides, this.fontRels))
 			zip.file('ppt/theme/theme1.xml', genXml.makeXmlTheme())
 			zip.file('ppt/presentation.xml', genXml.makeXmlPresentation(this))
 			zip.file('ppt/presProps.xml', genXml.makeXmlPresProps())
@@ -478,6 +488,10 @@ export default class PptxGenJS implements IPresentationLib {
 				arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(layout, zip))
 			})
 			arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(this.masterSlide, zip))
+
+			this.fontRels.forEach(fontRel => {
+				arrMediaPromises = arrMediaPromises.concat(genMedia.encodeFontRels(fontRel, zip))
+			})
 
 			// D: Wait for Promises (if any) then generate the PPTX file
 			Promise.all(arrMediaPromises)
@@ -722,5 +736,15 @@ export default class PptxGenJS implements IPresentationLib {
 			opts,
 			opts && opts.masterSlideName ? this.slideLayouts.filter(layout => layout.name === opts.masterSlideName)[0] : null
 		)
+	}
+
+	embedFonts(fonts: IFont[]) {
+		fonts.forEach((font, index) => {
+			this._fontRels.push({
+				fontName: font.fontName,
+				fileName: font.fileName,
+				Target: '../fonts/font' + index + font.fileName.split('.').pop(),
+			})
+		})
 	}
 }

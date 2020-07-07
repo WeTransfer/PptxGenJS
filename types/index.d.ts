@@ -1377,6 +1377,11 @@ declare namespace PptxGenJS {
 		slideLayouts?: ISlideLayout[]
 	}
 
+	export interface IFont {
+		fontName: string
+		fileName: string
+	}
+
 	/**
 	 * `slide.d.ts`
 	 */
@@ -1433,5 +1438,10 @@ declare namespace PptxGenJS {
 		 * @return {Slide} this Slide
 		 */
 		addText(text: string | IText[], options?: ITextOpts): Slide
+		/**
+		 * Embed font files into presentation
+		 * @param {IFont[]} fonts - list of font names and filenames]
+		 */
+		embedFonts(fonts: IFont[])
 	}
 }
