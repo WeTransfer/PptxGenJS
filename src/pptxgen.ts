@@ -743,7 +743,7 @@ export default class PptxGenJS implements IPresentationLib {
 			this._fontRels.push({
 				fontName: font.fontName,
 				fileName: font.fileName,
-				Target: '../fonts/font' + index + font.fileName.split('.').pop(),
+				Target: '../fonts/font' + index + '.' + font.fileName.split('.').pop(),
 			})
 		})
 	}
