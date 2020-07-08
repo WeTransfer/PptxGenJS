@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-08T17:38:07.048Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-08T19:23:46.855Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2611,7 +2611,7 @@ function makeXmlPresentationRels(slides, fontRels) {
         strXml +=
             '<Relationship Id="rId' +
                 (fontRels[index].rId) +
-                '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target + '"/>';
+                '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target.replace('../', '') + '"/>';
     });
     return strXml;
 }
