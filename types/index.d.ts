@@ -104,7 +104,7 @@ declare class PptxGenJS {
 	 * Embed font files into presentation
 	 * @param {IFont[]} fonts - list of font names and filenames]
 	 */
-	embedFonts(fonts: IFont[])
+	embedFonts(fonts: PptxGenJS.IFont[])
 }
 
 declare namespace PptxGenJS {
