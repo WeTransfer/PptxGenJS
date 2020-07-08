@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-08T15:23:51.746Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-08T15:49:56.641Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2591,23 +2591,23 @@ function makeXmlPresentationRels(slides, fontRels) {
     intRelNum++;
     strXml +=
         '<Relationship Id="rId' +
-            intRelNum +
+            ++intRelNum +
             '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster" Target="notesMasters/notesMaster1.xml"/>' +
             '<Relationship Id="rId' +
-            (intRelNum + 1) +
+            (++intRelNum) +
             '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps" Target="presProps.xml"/>' +
             '<Relationship Id="rId' +
-            (intRelNum + 2) +
+            (++intRelNum) +
             '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps" Target="viewProps.xml"/>' +
             '<Relationship Id="rId' +
-            (intRelNum + 3) +
+            (++intRelNum) +
             '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>' +
             '<Relationship Id="rId' +
-            (intRelNum + 4) +
+            (++intRelNum) +
             '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>' +
             '</Relationships>';
     fontRels.forEach(function (fontRel, index) {
-        fontRels[index].rId = intRelNum + 4 + index;
+        fontRels[index].rId = ++intRelNum;
         strXml +=
             '<Relationship Id="rId' +
                 (fontRels[index].rId) +

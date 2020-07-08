@@ -1465,23 +1465,23 @@ export function makeXmlPresentationRels(slides: Array<ISlide>, fontRels: Array<I
 	intRelNum++
 	strXml +=
 		'<Relationship Id="rId' +
-		intRelNum +
+		++intRelNum +
 		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster" Target="notesMasters/notesMaster1.xml"/>' +
 		'<Relationship Id="rId' +
-		(intRelNum + 1) +
+		(++intRelNum) +
 		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps" Target="presProps.xml"/>' +
 		'<Relationship Id="rId' +
-		(intRelNum + 2) +
+		(++intRelNum) +
 		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps" Target="viewProps.xml"/>' +
 		'<Relationship Id="rId' +
-		(intRelNum + 3) +
+		(++intRelNum) +
 		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>' +
 		'<Relationship Id="rId' +
-		(intRelNum + 4) +
+		(++intRelNum) +
 		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>' +
 		'</Relationships>'
 	fontRels.forEach((fontRel, index) => {
-		fontRels[index].rId = intRelNum + 4 + index
+		fontRels[index].rId = ++intRelNum
 		strXml +=
 			'<Relationship Id="rId' +
 			(fontRels[index].rId) +
@@ -1772,7 +1772,7 @@ export function makeXmlPresentation(pres: IPresentationLib): string {
 		strXml += `<p:embeddedFont><p:font typeface="${fontRel.fontName}" pitchFamily="2" charset="77"/><p:regular r:id="${fontRel.rId}"/></p:embeddedFont>`
 	})
 	strXml += '</p:embeddedFontLst>'
-	
+
 	// STEP 4: Add sizes
 	strXml += `<p:sldSz cx="${pres.presLayout.width}" cy="${pres.presLayout.height}"/>`
 	strXml += `<p:notesSz cx="${pres.presLayout.height}" cy="${pres.presLayout.width}"/>`
