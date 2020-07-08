@@ -267,7 +267,7 @@ export default class PptxGenJS implements IPresentationLib {
 	}
 
 	/** this Presentation's embedded fonts */
-	private _fontRels: IFontRel[]
+	private _fontRels: IFontRel[] = []
 	public get fontRels(): IFontRel[] {
 		return this._fontRels
 	}

@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-08T14:38:25.407Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-08T14:55:51.133Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -6010,6 +6010,8 @@ var PptxGenJS = /** @class */ (function () {
          * @depricated use `ShapeType`
          */
         this._shapes = SHAPE_TYPE;
+        /** this Presentation's embedded fonts */
+        this._fontRels = [];
         /**
          * Provides an API for `addTableDefinition` to create slides as needed for auto-paging
          * @param {string} masterName - slide master name
