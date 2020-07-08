@@ -1769,7 +1769,7 @@ export function makeXmlPresentation(pres: IPresentationLib): string {
 	// Step 3.5: Add embedded fonts
 	strXml += `<p:embeddedFontLst>`
 	pres.fontRels.forEach(fontRel => {
-		strXml += `<p:embeddedFont><p:font typeface="${fontRel.fontName}" pitchFamily="2" charset="77"/><p:regular r:id="${fontRel.rId}"/></p:embeddedFont>`
+		strXml += `<p:embeddedFont><p:font typeface="${fontRel.fontName}" pitchFamily="2" charset="77"/><p:regular r:id="rId${fontRel.rId}"/></p:embeddedFont>`
 	})
 	strXml += '</p:embeddedFontLst>'
 

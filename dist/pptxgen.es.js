@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-08T17:08:30.739Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-08T17:38:07.048Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2856,7 +2856,7 @@ function makeXmlPresentation(pres) {
     // Step 3.5: Add embedded fonts
     strXml += "<p:embeddedFontLst>";
     pres.fontRels.forEach(function (fontRel) {
-        strXml += "<p:embeddedFont><p:font typeface=\"" + fontRel.fontName + "\" pitchFamily=\"2\" charset=\"77\"/><p:regular r:id=\"" + fontRel.rId + "\"/></p:embeddedFont>";
+        strXml += "<p:embeddedFont><p:font typeface=\"" + fontRel.fontName + "\" pitchFamily=\"2\" charset=\"77\"/><p:regular r:id=\"rId" + fontRel.rId + "\"/></p:embeddedFont>";
     });
     strXml += '</p:embeddedFontLst>';
     // STEP 4: Add sizes
