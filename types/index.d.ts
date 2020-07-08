@@ -100,6 +100,11 @@ declare class PptxGenJS {
 	 * @param {ITableToSlidesOpts} inOpts - array of options (e.g.: tabsize)
 	 */
 	tableToSlides(tableElementId: string, opts?: PptxGenJS.ITableToSlidesOpts): void
+	/**
+	 * Embed font files into presentation
+	 * @param {IFont[]} fonts - list of font names and filenames]
+	 */
+	embedFonts(fonts: IFont[])
 }
 
 declare namespace PptxGenJS {
@@ -1438,10 +1443,5 @@ declare namespace PptxGenJS {
 		 * @return {Slide} this Slide
 		 */
 		addText(text: string | IText[], options?: ITextOpts): Slide
-		/**
-		 * Embed font files into presentation
-		 * @param {IFont[]} fonts - list of font names and filenames]
-		 */
-		embedFonts(fonts: IFont[])
 	}
 }
