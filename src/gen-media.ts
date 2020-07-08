@@ -142,7 +142,7 @@ export function encodeFontRels(fontRel: IFontRel, zip: JSZip): Promise<string> {
 	let imageProm: Promise<string> = new Promise((resolve, reject) => {
 		try {
 			fs.readFile(fontRel.fileName, function read(err, data) {
-				zip.file(fontRel.Target.replace('..', 'ppt'), data, { binary: true })
+				zip.file('ppt/' + fontRel.Target, data, { binary: true })
 				resolve('done')
 			})	
 		} catch (ex) {

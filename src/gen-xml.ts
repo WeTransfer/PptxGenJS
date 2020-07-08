@@ -1485,7 +1485,7 @@ export function makeXmlPresentationRels(slides: Array<ISlide>, fontRels: Array<I
 		strXml +=
 			'<Relationship Id="rId' +
 			(fontRels[index].rId) +
-			'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target.replace('../', '') + '"/>'
+			'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target + '"/>'
 	})
 	return strXml
 }

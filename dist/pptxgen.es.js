@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-08T19:23:46.855Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-08T19:38:46.224Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2611,7 +2611,7 @@ function makeXmlPresentationRels(slides, fontRels) {
         strXml +=
             '<Relationship Id="rId' +
                 (fontRels[index].rId) +
-                '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target.replace('../', '') + '"/>';
+                '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target + '"/>';
     });
     return strXml;
 }
@@ -5899,7 +5899,7 @@ function encodeFontRels(fontRel, zip) {
     var imageProm = new Promise(function (resolve, reject) {
         try {
             fs.readFile(fontRel.fileName, function read(err, data) {
-                zip.file(fontRel.Target.replace('..', 'ppt'), data, { binary: true });
+                zip.file('ppt/' + fontRel.Target, data, { binary: true });
                 resolve('done');
             });
         }
@@ -6639,7 +6639,7 @@ var PptxGenJS = /** @class */ (function () {
             _this._fontRels.push({
                 fontName: font.fontName,
                 fileName: font.fileName,
-                Target: '../fonts/font' + index + '.' + font.fileName.split('.').pop(),
+                Target: 'fonts/font' + index + '.' + font.fileName.split('.').pop(),
             });
         });
     };
