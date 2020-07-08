@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-08T19:38:46.203Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-08T20:01:40.829Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2855,15 +2855,17 @@ function makeXmlPresentation(pres) {
     // IMPORTANT: Placing this before `<p:sldIdLst>` causes warning in modern powerpoint!
     // IMPORTANT: Presentations open without warning Without this line, however, the pres isnt preview in Finder anymore or viewable in iOS!
     strXml += "<p:notesMasterIdLst><p:notesMasterId r:id=\"rId" + (pres.slides.length + 2) + "\"/></p:notesMasterIdLst>";
-    // Step 3.5: Add embedded fonts
-    strXml += "<p:embeddedFontLst>";
-    pres.fontRels.forEach(function (fontRel) {
-        strXml += "<p:embeddedFont><p:font typeface=\"" + fontRel.fontName + "\" pitchFamily=\"2\" charset=\"77\"/><p:regular r:id=\"rId" + fontRel.rId + "\"/></p:embeddedFont>";
-    });
-    strXml += '</p:embeddedFontLst>';
     // STEP 4: Add sizes
     strXml += "<p:sldSz cx=\"" + pres.presLayout.width + "\" cy=\"" + pres.presLayout.height + "\"/>";
     strXml += "<p:notesSz cx=\"" + pres.presLayout.height + "\" cy=\"" + pres.presLayout.width + "\"/>";
+    // Step 4.5: Add embedded fonts
+    if (pres.fontRels.length > 0) {
+        strXml += "<p:embeddedFontLst>";
+        pres.fontRels.forEach(function (fontRel) {
+            strXml += "<p:embeddedFont><p:font typeface=\"" + fontRel.fontName + "\" pitchFamily=\"2\" charset=\"0\"/><p:regular r:id=\"rId" + fontRel.rId + "\"/></p:embeddedFont>";
+        });
+        strXml += '</p:embeddedFontLst>';
+    }
     // STEP 5: Add text styles
     strXml += '<p:defaultTextStyle>';
     for (var idy = 1; idy < 10; idy++) {
