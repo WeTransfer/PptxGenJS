@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-09T15:41:12.847Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-09T16:58:10.868Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2841,9 +2841,12 @@ function makeXmlTheme() {
  * @return {string} XML
  */
 function makeXmlPresentation(pres) {
+    var fontMode = pres.fontRels.length > 0
+        ? 'embedTrueTypeFonts="1"'
+        : 'saveSubsetFonts="1"';
     var strXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" + CRLF +
         "<p:presentation xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" " +
-        ("xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\" " + (pres.rtlMode ? 'rtl="1"' : '') + " saveSubsetFonts=\"1\" autoCompressPictures=\"0\">");
+        ("xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\" " + (pres.rtlMode ? 'rtl="1"' : '') + " " + fontMode + " autoCompressPictures=\"0\">");
     // STEP 1: Add slide master (SPEC: tag 1 under <presentation>)
     strXml += '<p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>';
     // STEP 2: Add all Slides (SPEC: tag 3 under <presentation>)
