@@ -469,7 +469,7 @@ export default class PptxGenJS implements IPresentationLib {
 			zip.folder('ppt/theme')
 			zip.folder('ppt/notesMasters').folder('_rels')
 			zip.folder('ppt/notesSlides').folder('_rels')
-			zip.file('[Content_Types].xml', genXml.makeXmlContTypes(this.slides, this.slideLayouts, this.masterSlide)) // TODO: pass only `this` like below! 20200206
+			zip.file('[Content_Types].xml', genXml.makeXmlContTypes(this.slides, this.slideLayouts, this.fontRels, this.masterSlide)) // TODO: pass only `this` like below! 20200206
 			zip.file('_rels/.rels', genXml.makeXmlRootRels())
 			zip.file('docProps/app.xml', genXml.makeXmlApp(this.slides, this.company)) // TODO: pass only `this` like below! 20200206
 			zip.file('docProps/core.xml', genXml.makeXmlCore(this.title, this.subject, this.author, this.revision)) // TODO: pass only `this` like below! 20200206

@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-08T20:01:40.829Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-09T15:41:12.840Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2478,9 +2478,12 @@ function genXmlPlaceholder(placeholderObj) {
  * @param {ISlide} masterSlide - master slide
  * @returns XML
  */
-function makeXmlContTypes(slides, slideLayouts, masterSlide) {
+function makeXmlContTypes(slides, slideLayouts, fontRels, masterSlide) {
     var strXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + CRLF;
     strXml += '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">';
+    if (fontRels.length > 0) {
+        strXml += '<Default Extension="fntdata" ContentType="application/x-fontdata"/>';
+    }
     strXml += '<Default Extension="xml" ContentType="application/xml"/>';
     strXml += '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>';
     strXml += '<Default Extension="jpeg" ContentType="image/jpeg"/>';
@@ -6137,7 +6140,7 @@ var PptxGenJS = /** @class */ (function () {
                 zip.folder('ppt/theme');
                 zip.folder('ppt/notesMasters').folder('_rels');
                 zip.folder('ppt/notesSlides').folder('_rels');
-                zip.file('[Content_Types].xml', makeXmlContTypes(_this.slides, _this.slideLayouts, _this.masterSlide)); // TODO: pass only `this` like below! 20200206
+                zip.file('[Content_Types].xml', makeXmlContTypes(_this.slides, _this.slideLayouts, _this.fontRels, _this.masterSlide)); // TODO: pass only `this` like below! 20200206
                 zip.file('_rels/.rels', makeXmlRootRels());
                 zip.file('docProps/app.xml', makeXmlApp(_this.slides, _this.company)); // TODO: pass only `this` like below! 20200206
                 zip.file('docProps/core.xml', makeXmlCore(_this.title, _this.subject, _this.author, _this.revision)); // TODO: pass only `this` like below! 20200206

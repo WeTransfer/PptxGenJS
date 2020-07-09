@@ -34,6 +34,7 @@ import {
 	IPresentationLib,
 } from './core-interfaces'
 import { encodeXmlEntities, inch2Emu, genXmlColorSelection, getSmartParseNumber, convertRotationDegrees, createGlowElement, getUuid } from './gen-utils'
+import { encodeFontRels } from './gen-media'
 
 let imageSizingXml = {
 	cover: function(imgSize, boxDim) {
@@ -1291,9 +1292,12 @@ export function genXmlPlaceholder(placeholderObj: ISlideObject): string {
  * @param {ISlide} masterSlide - master slide
  * @returns XML
  */
-export function makeXmlContTypes(slides: ISlide[], slideLayouts: ISlideLayout[], masterSlide?: ISlide): string {
+export function makeXmlContTypes(slides: ISlide[], slideLayouts: ISlideLayout[], fontRels: Array<IFontRel>, masterSlide?: ISlide): string {
 	let strXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + CRLF
 	strXml += '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+	if (fontRels.length > 0) {
+		strXml += '<Default Extension="fntdata" ContentType="application/x-fontdata"/>'
+	}
 	strXml += '<Default Extension="xml" ContentType="application/xml"/>'
 	strXml += '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
 	strXml += '<Default Extension="jpeg" ContentType="image/jpeg"/>'
