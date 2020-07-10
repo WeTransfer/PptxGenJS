@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-10T01:04:17.533Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-10T01:30:20.051Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -6649,7 +6649,7 @@ var PptxGenJS = /** @class */ (function () {
             _this._fontRels.push({
                 fontName: font.fontName,
                 fileName: font.fileName,
-                Target: 'fonts/font' + index + '.fntdata',
+                Target: 'fonts/font' + index + 1 + '.fntdata',
             });
         });
     };
