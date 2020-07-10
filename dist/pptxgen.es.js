@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-10T01:55:19.818Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-10T21:35:25.404Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2607,8 +2607,7 @@ function makeXmlPresentationRels(slides, fontRels) {
             '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>' +
             '<Relationship Id="rId' +
             (++intRelNum) +
-            '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>' +
-            '</Relationships>';
+            '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>';
     fontRels.forEach(function (fontRel, index) {
         fontRels[index].rId = ++intRelNum;
         strXml +=
@@ -2616,6 +2615,7 @@ function makeXmlPresentationRels(slides, fontRels) {
                 (fontRels[index].rId) +
                 '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target + '"/>';
     });
+    strXml += '</Relationships>';
     return strXml;
 }
 // XML-GEN: Functions that run 1-N times (once for each Slide)

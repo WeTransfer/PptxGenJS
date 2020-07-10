@@ -1482,8 +1482,8 @@ export function makeXmlPresentationRels(slides: Array<ISlide>, fontRels: Array<I
 		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>' +
 		'<Relationship Id="rId' +
 		(++intRelNum) +
-		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>' +
-		'</Relationships>'
+		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>'
+		
 	fontRels.forEach((fontRel, index) => {
 		fontRels[index].rId = ++intRelNum
 		strXml +=
@@ -1491,6 +1491,7 @@ export function makeXmlPresentationRels(slides: Array<ISlide>, fontRels: Array<I
 			(fontRels[index].rId) +
 			'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="' + fontRel.Target + '"/>'
 	})
+	strXml += '</Relationships>'
 	return strXml
 }
 
