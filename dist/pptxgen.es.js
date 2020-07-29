@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-07-29T21:19:43.755Z */
+/* PptxGenJS 3.2.0-beta @ 2020-07-29T21:24:22.248Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -2172,7 +2172,7 @@ function genXmlTextRunProperties(opts, isDefault) {
     runProps += opts.bold ? ' b="1"' : '';
     runProps += opts.italic ? ' i="1"' : '';
     runProps += opts.strike ? ' strike="sngStrike"' : '';
-    runProps += opts.underline || (opts.hyperlink && opts.hyperlink.underline) ? ' u="sng"' : '';
+    runProps += opts.underline || (opts.hyperlink && (opts.hyperlink.underline === undefined || opts.hyperlink.underline !== false)) ? ' u="sng"' : '';
     runProps += opts.subscript ? ' baseline="-40000"' : opts.superscript ? ' baseline="30000"' : '';
     runProps += opts.charSpacing ? ' spc="' + opts.charSpacing * 100 + '" kern="0"' : ''; // IMPORTANT: Also disable kerning; otherwise text won't actually expand
     runProps += ' dirty="0">';
