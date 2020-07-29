@@ -792,7 +792,7 @@ declare namespace PptxGenJS {
 		slide?: number
 		tooltip?: string
 		url?: string
-		underline?: boolean
+		hideUnderline?: boolean
 	}
 	export type ShapeFill =
 		| Color
