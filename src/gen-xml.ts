@@ -970,7 +970,7 @@ function genXmlTextRunProperties(opts: IObjectOptions | ITextOpts, isDefault: bo
 	runProps += opts.bold ? ' b="1"' : ''
 	runProps += opts.italic ? ' i="1"' : ''
 	runProps += opts.strike ? ' strike="sngStrike"' : ''
-	// runProps += opts.underline || (opts.hyperlink && (opts.hyperlink.hideUnderline === undefined || opts.hyperlink.hideUnderline !== true)) ? ' u="sng"' : ''
+	runProps += opts.underline || opts.hyperlink ? ' u="sng"' : ''
 	runProps += opts.subscript ? ' baseline="-40000"' : opts.superscript ? ' baseline="30000"' : ''
 	runProps += opts.charSpacing ? ' spc="' + opts.charSpacing * 100 + '" kern="0"' : '' // IMPORTANT: Also disable kerning; otherwise text won't actually expand
 	runProps += ' dirty="0">'
