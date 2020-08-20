@@ -1387,6 +1387,25 @@ export function makeXmlRootRels(): string {
 		</Relationships>`
 }
 
+function getNotesXML(slides: ISlide[]): string {
+	let noteCounter = 0;
+
+	slides.forEach(slide => {
+		Loop1:
+		for (let i = 0 ; i < slide.data.length ; i++) {
+			if (slide.data[i].type === 'notes') {
+				noteCounter =+ 1
+				break Loop1
+			}
+		}
+	})
+	if (noteCounter > 0) {
+		return `<Notes>${noteCounter}</Notes>`
+	} else {
+		return ``
+	}
+}
+
 /**
  * Creates `docProps/app.xml`
  * @param {ISlide[]} slides - Presenation Slides
@@ -1401,7 +1420,7 @@ export function makeXmlApp(slides: ISlide[], company: string): string {
 	<PresentationFormat>On-screen Show (16:9)</PresentationFormat>
 	<Paragraphs>0</Paragraphs>
 	<Slides>${slides.length}</Slides>
-	<Notes>${slides.length}</Notes>
+	${getNotesXML(slides)}
 	<HiddenSlides>0</HiddenSlides>
 	<MMClips>0</MMClips>
 	<ScaleCrop>false</ScaleCrop>
@@ -1467,10 +1486,13 @@ export function makeXmlPresentationRels(slides: Array<ISlide>, fontRels: Array<I
 			'<Relationship Id="rId' + ++intRelNum + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide' + idx + '.xml"/>'
 	}
 	intRelNum++
-	strXml +=
+	if (doSlidesHaveNotes(slides)) {
+		strXml +=
 		'<Relationship Id="rId' +
 		++intRelNum +
-		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster" Target="notesMasters/notesMaster1.xml"/>' +
+		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster" Target="notesMasters/notesMaster1.xml"/>'
+	}
+	strXml +=
 		'<Relationship Id="rId' +
 		(++intRelNum) +
 		'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps" Target="presProps.xml"/>' +
@@ -1511,6 +1533,35 @@ export function makeXmlSlide(slide: ISlide): string {
 		`${slideObjectToXml(slide)}` +
 		`<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`
 	)
+}
+
+/**
+ * Checks if any slide has notes
+ * @param {ISlide[]} slides - array of slide objects for deck
+ * @return {boolean} returns true if notes exist
+ */
+export function doSlidesHaveNotes(slides: ISlide[]): boolean {
+
+	slides.forEach(slide => {
+		if (doesSlideHaveNotes(slide)) {
+			return true
+		}
+	})
+
+	return false
+}
+/**
+ * Checks if a slide has notes
+ * @param {ISlide} slide - the slide object
+ * @return {boolean} returns true if notes exist
+ */
+export function doesSlideHaveNotes(slide: ISlide): boolean {
+
+	slide.data.forEach(data => {
+		if (data.type === 'notes') return true
+	})
+
+	return false
 }
 
 /**
@@ -1662,16 +1713,18 @@ export function makeXmlSlideLayoutRel(layoutNumber: number, slideLayouts: ISlide
  * @return {string} XML
  */
 export function makeXmlSlideRel(slides: ISlide[], slideLayouts: ISlideLayout[], slideNumber: number): string {
-	return slideObjectRelationsToXml(slides[slideNumber - 1], [
-		{
-			target: '../slideLayouts/slideLayout' + getLayoutIdxForSlide(slides, slideLayouts, slideNumber) + '.xml',
-			type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout',
-		},
-		{
+	const defaultRels: { target: string; type: string }[] = [];
+	defaultRels.push({
+		target: '../slideLayouts/slideLayout' + getLayoutIdxForSlide(slides, slideLayouts, slideNumber) + '.xml',
+		type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout',
+	})
+	if (doSlidesHaveNotes(slides)) {
+		defaultRels.push({
 			target: '../notesSlides/notesSlide' + slideNumber + '.xml',
 			type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide',
-		},
-	])
+		})
+	}
+	return slideObjectRelationsToXml(slides[slideNumber - 1], defaultRels)
 }
 
 /**
@@ -1772,7 +1825,9 @@ export function makeXmlPresentation(pres: IPresentationLib): string {
 	// IMPORTANT: In this order (matches PPT2019) PPT will give corruption message on open!
 	// IMPORTANT: Placing this before `<p:sldIdLst>` causes warning in modern powerpoint!
 	// IMPORTANT: Presentations open without warning Without this line, however, the pres isnt preview in Finder anymore or viewable in iOS!
-	strXml += `<p:notesMasterIdLst><p:notesMasterId r:id="rId${pres.slides.length + 2}"/></p:notesMasterIdLst>`
+	if (doSlidesHaveNotes(this.slides)) {
+		strXml += `<p:notesMasterIdLst><p:notesMasterId r:id="rId${pres.slides.length + 2}"/></p:notesMasterIdLst>`
+	}
 
 	// STEP 4: Add sizes
 	strXml += `<p:sldSz cx="${pres.presLayout.width}" cy="${pres.presLayout.height}"/>`

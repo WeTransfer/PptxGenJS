@@ -512,13 +512,17 @@ export default class PptxGenJS implements IPresentationLib {
 						zip.file('ppt/slides/slide' + (idx + 1) + '.xml', genXml.makeXmlSlide(slide))
 						zip.file('ppt/slides/_rels/slide' + (idx + 1) + '.xml.rels', genXml.makeXmlSlideRel(this.slides, this.slideLayouts, idx + 1))
 						// Create all slide notes related items. Notes of empty strings are created for slides which do not have notes specified, to keep track of _rels.
-						zip.file('ppt/notesSlides/notesSlide' + (idx + 1) + '.xml', genXml.makeXmlNotesSlide(slide))
-						zip.file('ppt/notesSlides/_rels/notesSlide' + (idx + 1) + '.xml.rels', genXml.makeXmlNotesSlideRel(idx + 1))
+						if (genXml.doesSlideHaveNotes(slide)) {
+							zip.file('ppt/notesSlides/notesSlide' + (idx + 1) + '.xml', genXml.makeXmlNotesSlide(slide))
+							zip.file('ppt/notesSlides/_rels/notesSlide' + (idx + 1) + '.xml.rels', genXml.makeXmlNotesSlideRel(idx + 1))
+						}
 					})
 					zip.file('ppt/slideMasters/slideMaster1.xml', genXml.makeXmlMaster(this.masterSlide, this.slideLayouts))
 					zip.file('ppt/slideMasters/_rels/slideMaster1.xml.rels', genXml.makeXmlMasterRel(this.masterSlide, this.slideLayouts))
-					zip.file('ppt/notesMasters/notesMaster1.xml', genXml.makeXmlNotesMaster())
-					zip.file('ppt/notesMasters/_rels/notesMaster1.xml.rels', genXml.makeXmlNotesMasterRel())
+					if (genXml.doSlidesHaveNotes(this.slides)) {
+						zip.file('ppt/notesMasters/notesMaster1.xml', genXml.makeXmlNotesMaster())
+						zip.file('ppt/notesMasters/_rels/notesMaster1.xml.rels', genXml.makeXmlNotesMasterRel())
+					}
 					if (outputType === 'STREAM') {
 						// A: stream file
 						zip.generateAsync({ type: 'nodebuffer' }).then(content => {
