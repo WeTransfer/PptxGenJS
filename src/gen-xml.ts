@@ -1825,7 +1825,7 @@ export function makeXmlPresentation(pres: IPresentationLib): string {
 	// IMPORTANT: In this order (matches PPT2019) PPT will give corruption message on open!
 	// IMPORTANT: Placing this before `<p:sldIdLst>` causes warning in modern powerpoint!
 	// IMPORTANT: Presentations open without warning Without this line, however, the pres isnt preview in Finder anymore or viewable in iOS!
-	if (doSlidesHaveNotes(this.slides)) {
+	if (doSlidesHaveNotes(pres.slides)) {
 		strXml += `<p:notesMasterIdLst><p:notesMasterId r:id="rId${pres.slides.length + 2}"/></p:notesMasterIdLst>`
 	}
 

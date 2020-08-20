@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-20T18:51:28.272Z */
+/* PptxGenJS 3.2.0-beta @ 2020-08-20T18:59:01.321Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2824,7 +2824,7 @@ function makeXmlPresentation(pres) {
     // IMPORTANT: In this order (matches PPT2019) PPT will give corruption message on open!
     // IMPORTANT: Placing this before `<p:sldIdLst>` causes warning in modern powerpoint!
     // IMPORTANT: Presentations open without warning Without this line, however, the pres isnt preview in Finder anymore or viewable in iOS!
-    if (doSlidesHaveNotes(this.slides)) ;
+    if (doSlidesHaveNotes(pres.slides)) ;
     // STEP 4: Add sizes
     strXml += "<p:sldSz cx=\"" + pres.presLayout.width + "\" cy=\"" + pres.presLayout.height + "\"/>";
     strXml += "<p:notesSz cx=\"" + pres.presLayout.height + "\" cy=\"" + pres.presLayout.width + "\"/>";
