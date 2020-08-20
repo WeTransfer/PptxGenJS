@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-20T18:59:01.321Z */
+/* PptxGenJS 3.2.0-beta @ 2020-08-20T19:13:00.468Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -2807,6 +2807,7 @@ function makeXmlTheme() {
  * @return {string} XML
  */
 function makeXmlPresentation(pres) {
+    var slides = pres.slides;
     var fontMode = pres.fontRels.length > 0
         ? 'embedTrueTypeFonts="1"'
         : 'saveSubsetFonts="1"';
@@ -2817,14 +2818,14 @@ function makeXmlPresentation(pres) {
     strXml += '<p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>';
     // STEP 2: Add all Slides (SPEC: tag 3 under <presentation>)
     strXml += '<p:sldIdLst>';
-    pres.slides.forEach(function (slide) { return (strXml += "<p:sldId id=\"" + slide.id + "\" r:id=\"rId" + slide.rId + "\"/>"); });
+    slides.forEach(function (slide) { return (strXml += "<p:sldId id=\"" + slide.id + "\" r:id=\"rId" + slide.rId + "\"/>"); });
     strXml += '</p:sldIdLst>';
     // STEP 3: Add Notes Master (SPEC: tag 2 under <presentation>)
     // (NOTE: length+2 is from `presentation.xml.rels` func (since we have to match this rId, we just use same logic))
     // IMPORTANT: In this order (matches PPT2019) PPT will give corruption message on open!
     // IMPORTANT: Placing this before `<p:sldIdLst>` causes warning in modern powerpoint!
     // IMPORTANT: Presentations open without warning Without this line, however, the pres isnt preview in Finder anymore or viewable in iOS!
-    if (doSlidesHaveNotes(pres.slides)) ;
+    if (doSlidesHaveNotes(slides)) ;
     // STEP 4: Add sizes
     strXml += "<p:sldSz cx=\"" + pres.presLayout.width + "\" cy=\"" + pres.presLayout.height + "\"/>";
     strXml += "<p:notesSz cx=\"" + pres.presLayout.height + "\" cy=\"" + pres.presLayout.width + "\"/>";

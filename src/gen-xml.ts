@@ -1804,6 +1804,7 @@ export function makeXmlTheme(): string {
  * @return {string} XML
  */
 export function makeXmlPresentation(pres: IPresentationLib): string {
+	const slides = pres.slides
 	const fontMode = pres.fontRels.length > 0
 		? 'embedTrueTypeFonts="1"'
 		: 'saveSubsetFonts="1"'
@@ -1817,7 +1818,7 @@ export function makeXmlPresentation(pres: IPresentationLib): string {
 
 	// STEP 2: Add all Slides (SPEC: tag 3 under <presentation>)
 	strXml += '<p:sldIdLst>'
-	pres.slides.forEach(slide => (strXml += `<p:sldId id="${slide.id}" r:id="rId${slide.rId}"/>`))
+	slides.forEach(slide => (strXml += `<p:sldId id="${slide.id}" r:id="rId${slide.rId}"/>`))
 	strXml += '</p:sldIdLst>'
 
 	// STEP 3: Add Notes Master (SPEC: tag 2 under <presentation>)
@@ -1825,8 +1826,8 @@ export function makeXmlPresentation(pres: IPresentationLib): string {
 	// IMPORTANT: In this order (matches PPT2019) PPT will give corruption message on open!
 	// IMPORTANT: Placing this before `<p:sldIdLst>` causes warning in modern powerpoint!
 	// IMPORTANT: Presentations open without warning Without this line, however, the pres isnt preview in Finder anymore or viewable in iOS!
-	if (doSlidesHaveNotes(pres.slides)) {
-		strXml += `<p:notesMasterIdLst><p:notesMasterId r:id="rId${pres.slides.length + 2}"/></p:notesMasterIdLst>`
+	if (doSlidesHaveNotes(slides)) {
+		strXml += `<p:notesMasterIdLst><p:notesMasterId r:id="rId${slides.length + 2}"/></p:notesMasterIdLst>`
 	}
 
 	// STEP 4: Add sizes
