@@ -61,22 +61,25 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 							res.on('end', () => {
 								rel.data = Buffer.from(rawData, 'binary')
 								// check for webp image and convert to png if so
-								const image = sharp(rel.data)
-								image
-									.metadata()
-									.then((metadata) => {
-										if (metadata.format === 'webp') {
-											return image
-												.png()
-												.toBuffer();
-										} else {
-											return rel.data
-										}
-									})
-									.then((data) => {
-										zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
-										resolve('done')
-									})
+								if (rel.type !== 'video') {
+									const image = sharp(rel.data)
+									image
+										.metadata()
+										.then((metadata) => {
+											if (metadata.format === 'webp') {
+												return image
+													.png()
+													.toBuffer();
+											} else {
+												return rel.data
+											}
+										})
+										.then((data) => {
+											zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
+											resolve('done')
+										})
+								}
+
 							})
 							res.on('error', ex => {
 								rel.data = IMG_BROKEN
