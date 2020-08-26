@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-26T03:57:33.179Z */
+/* PptxGenJS 3.2.0-beta @ 2020-08-26T04:10:35.021Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5767,9 +5767,7 @@ function encodeSlideMediaRels(layout, zip) {
     var https = typeof require !== 'undefined' && typeof window === 'undefined' ? require('https') : null; // NodeJS
     var imageProms = [];
     // A: Read/Encode each audio/image/video thats not already encoded (eg: base64 provided by user)
-    console.error('relsMedia = ', JSON.stringify(layout.relsMedia));
     var filteredRelsMedia = layout.relsMedia.filter(function (rel) { return rel.type !== 'online' && !rel.data; });
-    console.error('filteredRelsMedia = ', JSON.stringify(filteredRelsMedia));
     filteredRelsMedia
         .forEach(function (rel, index) {
         // media objects generate 2 rels, so check to see if the previous rel has the same target
@@ -5789,8 +5787,6 @@ function encodeSlideMediaRels(layout, zip) {
                     }
                 }
                 else if (fs && https && rel.path.indexOf('http') === 0) {
-                    console.error('about to download image/ video');
-                    console.error('rel = ', JSON.stringify(rel));
                     https.get(rel.path, function (res) {
                         var rawData = '';
                         res.setEncoding('binary'); // IMPORTANT: Only binary encoding works
@@ -5798,14 +5794,12 @@ function encodeSlideMediaRels(layout, zip) {
                         res.on('end', function () {
                             rel.data = Buffer.from(rawData, 'binary');
                             // check for webp image and convert to png if so
-                            console.error('about to try sharp, rel.Type = ', JSON.stringify(rel.type));
                             if (!rel.type.includes('video')) {
                                 try {
                                     var image_1 = sharp(rel.data);
                                     image_1
                                         .metadata()
                                         .then(function (metadata) {
-                                        console.error('metadata.format = ', JSON.stringify(metadata.format));
                                         if (metadata.format === 'webp') {
                                             return image_1
                                                 .png()
@@ -5816,26 +5810,21 @@ function encodeSlideMediaRels(layout, zip) {
                                         }
                                     })
                                         .then(function (data) {
-                                        console.error('in then, rel = ', JSON.stringify(rel));
                                         zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
-                                        console.error('past zip');
                                         resolve('done');
                                     });
                                 }
                                 catch (e) {
-                                    console.error('in catch');
                                     zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                                     resolve('done');
                                 }
                             }
                             else {
-                                console.error('rel.type was video, skipping sharp');
                                 zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                                 resolve('done');
                             }
                         });
                         res.on('error', function (ex) {
-                            console.error('in on error');
                             rel.data = IMG_BROKEN;
                             reject("ERROR! Unable to load image: " + rel.path);
                         });

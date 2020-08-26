@@ -37,9 +37,7 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 	let imageProms: Promise<string>[] = []
 
 	// A: Read/Encode each audio/image/video thats not already encoded (eg: base64 provided by user)
-	console.error('relsMedia = ', JSON.stringify(layout.relsMedia));
 	const filteredRelsMedia = layout.relsMedia.filter(rel => rel.type !== 'online' && !rel.data)
-	console.error('filteredRelsMedia = ', JSON.stringify(filteredRelsMedia));
 	filteredRelsMedia
 		.forEach((rel, index) => {
 			// media objects generate 2 rels, so check to see if the previous rel has the same target
@@ -58,8 +56,6 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 								reject('ERROR: Unable to read media: "' + rel.path + '"\n' + ex.toString())
 							}
 						} else if (fs && https && rel.path.indexOf('http') === 0) {
-							console.error('about to download image/ video');
-							console.error('rel = ', JSON.stringify(rel));
 							https.get(rel.path, res => {
 								let rawData = ''
 								res.setEncoding('binary') // IMPORTANT: Only binary encoding works
@@ -67,14 +63,12 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 								res.on('end', () => {
 									rel.data = Buffer.from(rawData, 'binary')
 									// check for webp image and convert to png if so
-									console.error('about to try sharp, rel.Type = ', JSON.stringify(rel.type))
 									if (!rel.type.includes('video')) {
 										try {
 											const image = sharp(rel.data)
 											image
 												.metadata()
 												.then((metadata) => {
-													console.error('metadata.format = ', JSON.stringify(metadata.format))
 													if (metadata.format === 'webp') {
 														return image
 															.png()
@@ -84,26 +78,21 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 													}
 												})
 												.then((data) => {
-													console.error('in then, rel = ', JSON.stringify(rel));
 													zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
-													console.error('past zip');
 													resolve('done')
 												})
 										 }
 										catch (e) {
-											console.error('in catch');
 											zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 											resolve('done')
 										}
 									} else {
-										console.error('rel.type was video, skipping sharp');
 										zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 										resolve('done')
 									}
 		
 								})
 								res.on('error', ex => {
-									console.error('in on error');
 									rel.data = IMG_BROKEN
 									reject(`ERROR! Unable to load image: ${rel.path}`)
 								})
