@@ -54,6 +54,7 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 							reject('ERROR: Unable to read media: "' + rel.path + '"\n' + ex.toString())
 						}
 					} else if (fs && https && rel.path.indexOf('http') === 0) {
+						console.error('about to download image/ video');
 						https.get(rel.path, res => {
 							let rawData = ''
 							res.setEncoding('binary') // IMPORTANT: Only binary encoding works
@@ -75,16 +76,19 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 											}
 										})
 										.then((data) => {
+											console.error('in then');
 											zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
 											resolve('done')
 										})
 								 }
-								catch {
+								catch (e) {
+									console.error('in catch');
 									zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 									resolve('done')
 								}
 							})
 							res.on('error', ex => {
+								console.error('in on error');
 								rel.data = IMG_BROKEN
 								reject(`ERROR! Unable to load image: ${rel.path}`)
 							})

@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-26T01:54:12.112Z */
+/* PptxGenJS 3.2.0-beta @ 2020-08-26T02:04:28.333Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5787,6 +5787,7 @@ function encodeSlideMediaRels(layout, zip) {
                 }
             }
             else if (fs && https && rel.path.indexOf('http') === 0) {
+                console.error('about to download image/ video');
                 https.get(rel.path, function (res) {
                     var rawData = '';
                     res.setEncoding('binary'); // IMPORTANT: Only binary encoding works
@@ -5809,16 +5810,19 @@ function encodeSlideMediaRels(layout, zip) {
                                 }
                             })
                                 .then(function (data) {
+                                console.error('in then');
                                 zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
                                 resolve('done');
                             });
                         }
-                        catch (_a) {
+                        catch (e) {
+                            console.error('in catch');
                             zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                             resolve('done');
                         }
                     });
                     res.on('error', function (ex) {
+                        console.error('in on error');
                         rel.data = IMG_BROKEN;
                         reject("ERROR! Unable to load image: " + rel.path);
                     });
