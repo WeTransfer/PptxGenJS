@@ -38,7 +38,7 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 
 	// A: Read/Encode each audio/image/video thats not already encoded (eg: base64 provided by user)
 	layout.relsMedia
-		.filter(rel => rel.type !== 'online' && !rel.data)
+		.filter(rel => rel.type !== 'online' && !rel.data)	
 		.forEach(rel => {
 			imageProms.push(
 				new Promise((resolve, reject) => {
@@ -61,24 +61,24 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 							res.on('end', () => {
 								rel.data = Buffer.from(rawData, 'binary')
 								// check for webp image and convert to png if so
-								if (rel.type !== 'video') {
-									const image = sharp(rel.data)
-									image
-										.metadata()
-										.then((metadata) => {
-											if (metadata.format === 'webp') {
-												return image
-													.png()
-													.toBuffer();
-											} else {
-												return rel.data
-											}
-										})
-										.then((data) => {
-											zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
-											resolve('done')
-										})
-								}
+								// if (rel.type !== 'video') {
+								// 	const image = sharp(rel.data)
+								// 	image
+								// 		.metadata()
+								// 		.then((metadata) => {
+								// 			if (metadata.format === 'webp') {
+								// 				return image
+								// 					.png()
+								// 					.toBuffer();
+								// 			} else {
+								// 				return rel.data
+								// 			}
+								// 		})
+								// 		.then((data) => {
+								// 			zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
+								// 			resolve('done')
+								// 		})
+								// }
 
 							})
 							res.on('error', ex => {
