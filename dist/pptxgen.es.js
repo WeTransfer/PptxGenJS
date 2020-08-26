@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-26T02:22:16.373Z */
+/* PptxGenJS 3.2.0-beta @ 2020-08-26T03:05:22.495Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5767,101 +5767,106 @@ function encodeSlideMediaRels(layout, zip) {
     var https = typeof require !== 'undefined' && typeof window === 'undefined' ? require('https') : null; // NodeJS
     var imageProms = [];
     // A: Read/Encode each audio/image/video thats not already encoded (eg: base64 provided by user)
-    layout.relsMedia
-        .filter(function (rel) { return rel.type !== 'online' && !rel.data; })
-        .forEach(function (rel) {
-        imageProms.push(new Promise(function (resolve, reject) {
-            if (fs && rel.path.indexOf('http') !== 0) {
-                // // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
-                try {
-                    var bitmap = fs.readFileSync(rel.path);
-                    rel.data = Buffer.from(bitmap).toString('base64');
-                    zipBase64MediaData(fs, rel, zip);
-                    resolve('done');
-                }
-                catch (ex) {
-                    rel.data = IMG_BROKEN;
-                    reject('ERROR: Unable to read media: "' + rel.path + '"\n' + ex.toString());
-                }
-            }
-            else if (fs && https && rel.path.indexOf('http') === 0) {
-                console.error('about to download image/ video');
-                console.error('rel = ', JSON.stringify(rel));
-                https.get(rel.path, function (res) {
-                    var rawData = '';
-                    res.setEncoding('binary'); // IMPORTANT: Only binary encoding works
-                    res.on('data', function (chunk) { return (rawData += chunk); });
-                    res.on('end', function () {
-                        rel.data = Buffer.from(rawData, 'binary');
-                        // check for webp image and convert to png if so
-                        try {
-                            var image_1 = sharp(rel.data);
-                            image_1
-                                .metadata()
-                                .then(function (metadata) {
-                                if (metadata.format === 'webp') {
-                                    return image_1
-                                        .png()
-                                        .toBuffer();
-                                }
-                                else {
-                                    return rel.data;
-                                }
-                            })
-                                .then(function (data) {
-                                console.error('in then');
-                                zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
-                                resolve('done');
-                            });
-                        }
-                        catch (e) {
-                            console.error('in catch');
-                            zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
-                            resolve('done');
-                        }
-                    });
-                    res.on('error', function (ex) {
-                        console.error('in on error');
+    var filteredRelsMedia = layout.relsMedia.filter(function (rel) { return rel.type !== 'online' && !rel.data; });
+    filteredRelsMedia
+        .forEach(function (rel, index) {
+        // media objects generate 2 rels, so check to see if the previous rel has the same target
+        if (index > 0 && rel.Target.localeCompare(filteredRelsMedia[index - 1].Target) !== 0) {
+            imageProms.push(new Promise(function (resolve, reject) {
+                if (fs && rel.path.indexOf('http') !== 0) {
+                    // // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
+                    try {
+                        var bitmap = fs.readFileSync(rel.path);
+                        rel.data = Buffer.from(bitmap).toString('base64');
+                        zipBase64MediaData(fs, rel, zip);
+                        resolve('done');
+                    }
+                    catch (ex) {
                         rel.data = IMG_BROKEN;
-                        reject("ERROR! Unable to load image: " + rel.path);
+                        reject('ERROR: Unable to read media: "' + rel.path + '"\n' + ex.toString());
+                    }
+                }
+                else if (fs && https && rel.path.indexOf('http') === 0) {
+                    console.error('about to download image/ video');
+                    console.error('rel = ', JSON.stringify(rel));
+                    https.get(rel.path, function (res) {
+                        var rawData = '';
+                        res.setEncoding('binary'); // IMPORTANT: Only binary encoding works
+                        res.on('data', function (chunk) { return (rawData += chunk); });
+                        res.on('end', function () {
+                            rel.data = Buffer.from(rawData, 'binary');
+                            // check for webp image and convert to png if so
+                            try {
+                                var image_1 = sharp(rel.data);
+                                image_1
+                                    .metadata()
+                                    .then(function (metadata) {
+                                    console.error('metadata.format = ', JSON.stringify(metadata.format));
+                                    if (metadata.format === 'webp') {
+                                        return image_1
+                                            .png()
+                                            .toBuffer();
+                                    }
+                                    else {
+                                        return rel.data;
+                                    }
+                                })
+                                    .then(function (data) {
+                                    console.error('in then, rel = ', JSON.stringify(rel));
+                                    zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
+                                    console.error('past zip');
+                                    resolve('done');
+                                });
+                            }
+                            catch (e) {
+                                console.error('in catch');
+                                zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
+                                resolve('done');
+                            }
+                        });
+                        res.on('error', function (ex) {
+                            console.error('in on error');
+                            rel.data = IMG_BROKEN;
+                            reject("ERROR! Unable to load image: " + rel.path);
+                        });
                     });
-                });
-            }
-            else {
-                // A: Declare XHR and onload/onerror handlers
-                // DESIGN: `XMLHttpRequest()` plus `FileReader()` = Ablity to read any file into base64!
-                var xhr_1 = new XMLHttpRequest();
-                xhr_1.onload = function () {
-                    var reader = new FileReader();
-                    reader.onloadend = function () {
-                        rel.data = reader.result;
-                        if (!rel.isSvgPng) {
-                            zipBase64MediaData(fs, rel, zip);
-                            resolve('done');
-                        }
-                        else {
-                            createSvgPngPreview(rel)
-                                .then(function () {
+                }
+                else {
+                    // A: Declare XHR and onload/onerror handlers
+                    // DESIGN: `XMLHttpRequest()` plus `FileReader()` = Ablity to read any file into base64!
+                    var xhr_1 = new XMLHttpRequest();
+                    xhr_1.onload = function () {
+                        var reader = new FileReader();
+                        reader.onloadend = function () {
+                            rel.data = reader.result;
+                            if (!rel.isSvgPng) {
                                 zipBase64MediaData(fs, rel, zip);
                                 resolve('done');
-                            })
-                                .catch(function (ex) {
-                                reject(ex);
-                            });
-                        }
+                            }
+                            else {
+                                createSvgPngPreview(rel)
+                                    .then(function () {
+                                    zipBase64MediaData(fs, rel, zip);
+                                    resolve('done');
+                                })
+                                    .catch(function (ex) {
+                                    reject(ex);
+                                });
+                            }
+                        };
+                        reader.readAsDataURL(xhr_1.response);
                     };
-                    reader.readAsDataURL(xhr_1.response);
-                };
-                xhr_1.onerror = function (ex) {
-                    rel.data = IMG_BROKEN;
-                    reject("ERROR! Unable to load image: " + rel.path);
-                };
-                // B: Execute request
-                xhr_1.open('GET', rel.path);
-                xhr_1.responseType = 'blob';
-                xhr_1.send();
-            }
-        }));
+                    xhr_1.onerror = function (ex) {
+                        rel.data = IMG_BROKEN;
+                        reject("ERROR! Unable to load image: " + rel.path);
+                    };
+                    // B: Execute request
+                    xhr_1.open('GET', rel.path);
+                    xhr_1.responseType = 'blob';
+                    xhr_1.send();
+                }
+            }));
+        }
     });
     // B: SVG: base64 data still requires a png to be generated (`isSvgPng` flag this as the preview image, not the SVG itself)
     layout.relsMedia

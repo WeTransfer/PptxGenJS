@@ -37,99 +37,105 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 	let imageProms: Promise<string>[] = []
 
 	// A: Read/Encode each audio/image/video thats not already encoded (eg: base64 provided by user)
-	layout.relsMedia
-		.filter(rel => rel.type !== 'online' && !rel.data)	
-		.forEach(rel => {
-			imageProms.push(
-				new Promise((resolve, reject) => {
-					if (fs && rel.path.indexOf('http') !== 0) {
-						// // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
-						try {
-							let bitmap = fs.readFileSync(rel.path)
-							rel.data = Buffer.from(bitmap).toString('base64')
-							zipBase64MediaData(fs, rel, zip)
-							resolve('done')
-						} catch (ex) {
-							rel.data = IMG_BROKEN
-							reject('ERROR: Unable to read media: "' + rel.path + '"\n' + ex.toString())
-						}
-					} else if (fs && https && rel.path.indexOf('http') === 0) {
-						console.error('about to download image/ video');
-						console.error('rel = ', JSON.stringify(rel));
-						https.get(rel.path, res => {
-							let rawData = ''
-							res.setEncoding('binary') // IMPORTANT: Only binary encoding works
-							res.on('data', chunk => (rawData += chunk))
-							res.on('end', () => {
-								rel.data = Buffer.from(rawData, 'binary')
-								// check for webp image and convert to png if so
-								try {
-									const image = sharp(rel.data)
-									image
-										.metadata()
-										.then((metadata) => {
-											if (metadata.format === 'webp') {
-												return image
-													.png()
-													.toBuffer();
-											} else {
-												return rel.data
-											}
-										})
-										.then((data) => {
-											console.error('in then');
-											zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
-											resolve('done')
-										})
-								 }
-								catch (e) {
-									console.error('in catch');
-									zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
-									resolve('done')
-								}
+	const filteredRelsMedia = layout.relsMedia.filter(rel => rel.type !== 'online' && !rel.data)
+	filteredRelsMedia
+		.forEach((rel, index) => {
+			// media objects generate 2 rels, so check to see if the previous rel has the same target
+			if (index > 0 && rel.Target.localeCompare(filteredRelsMedia[index -1].Target) !== 0) {
+				imageProms.push(
+					new Promise((resolve, reject) => {
+						if (fs && rel.path.indexOf('http') !== 0) {
+							// // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
+							try {
+								let bitmap = fs.readFileSync(rel.path)
+								rel.data = Buffer.from(bitmap).toString('base64')
+								zipBase64MediaData(fs, rel, zip)
+								resolve('done')
+							} catch (ex) {
+								rel.data = IMG_BROKEN
+								reject('ERROR: Unable to read media: "' + rel.path + '"\n' + ex.toString())
+							}
+						} else if (fs && https && rel.path.indexOf('http') === 0) {
+							console.error('about to download image/ video');
+							console.error('rel = ', JSON.stringify(rel));
+							https.get(rel.path, res => {
+								let rawData = ''
+								res.setEncoding('binary') // IMPORTANT: Only binary encoding works
+								res.on('data', chunk => (rawData += chunk))
+								res.on('end', () => {
+									rel.data = Buffer.from(rawData, 'binary')
+									// check for webp image and convert to png if so
+									try {
+										const image = sharp(rel.data)
+										image
+											.metadata()
+											.then((metadata) => {
+												console.error('metadata.format = ', JSON.stringify(metadata.format))
+												if (metadata.format === 'webp') {
+													return image
+														.png()
+														.toBuffer();
+												} else {
+													return rel.data
+												}
+											})
+											.then((data) => {
+												console.error('in then, rel = ', JSON.stringify(rel));
+												zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
+												console.error('past zip');
+												resolve('done')
+											})
+									 }
+									catch (e) {
+										console.error('in catch');
+										zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
+										resolve('done')
+									}
+								})
+								res.on('error', ex => {
+									console.error('in on error');
+									rel.data = IMG_BROKEN
+									reject(`ERROR! Unable to load image: ${rel.path}`)
+								})
 							})
-							res.on('error', ex => {
-								console.error('in on error');
+						} else {
+							// A: Declare XHR and onload/onerror handlers
+							// DESIGN: `XMLHttpRequest()` plus `FileReader()` = Ablity to read any file into base64!
+							let xhr = new XMLHttpRequest()
+							xhr.onload = () => {
+								let reader = new FileReader()
+								reader.onloadend = () => {
+									rel.data = reader.result
+									if (!rel.isSvgPng) {
+										zipBase64MediaData(fs, rel, zip)
+										resolve('done')
+									} else {
+										createSvgPngPreview(rel)
+											.then(() => {
+												zipBase64MediaData(fs, rel, zip)
+												resolve('done')
+											})
+											.catch(ex => {
+												reject(ex)
+											})
+									}
+								}
+								reader.readAsDataURL(xhr.response)
+							}
+							xhr.onerror = ex => {
 								rel.data = IMG_BROKEN
 								reject(`ERROR! Unable to load image: ${rel.path}`)
-							})
-						})
-					} else {
-						// A: Declare XHR and onload/onerror handlers
-						// DESIGN: `XMLHttpRequest()` plus `FileReader()` = Ablity to read any file into base64!
-						let xhr = new XMLHttpRequest()
-						xhr.onload = () => {
-							let reader = new FileReader()
-							reader.onloadend = () => {
-								rel.data = reader.result
-								if (!rel.isSvgPng) {
-									zipBase64MediaData(fs, rel, zip)
-									resolve('done')
-								} else {
-									createSvgPngPreview(rel)
-										.then(() => {
-											zipBase64MediaData(fs, rel, zip)
-											resolve('done')
-										})
-										.catch(ex => {
-											reject(ex)
-										})
-								}
 							}
-							reader.readAsDataURL(xhr.response)
+	
+							// B: Execute request
+							xhr.open('GET', rel.path)
+							xhr.responseType = 'blob'
+							xhr.send()
 						}
-						xhr.onerror = ex => {
-							rel.data = IMG_BROKEN
-							reject(`ERROR! Unable to load image: ${rel.path}`)
-						}
+					})
+				)
+			}
 
-						// B: Execute request
-						xhr.open('GET', rel.path)
-						xhr.responseType = 'blob'
-						xhr.send()
-					}
-				})
-			)
 		})
 
 	// B: SVG: base64 data still requires a png to be generated (`isSvgPng` flag this as the preview image, not the SVG itself)
