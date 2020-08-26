@@ -547,7 +547,7 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 			extn: strExtn,
 			data: strData || '',
 			rId: intRels + 1,
-			Target: '../media/media-' + target.number + '-' + (target.relsMedia.length + 0) + '.' + strExtn,
+			Target: '../media/media-' + target.number + '-' + (target.relsMedia.length) + '.' + strExtn,
 		})
 
 		// C: Add preview/overlay image
@@ -558,7 +558,7 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 				type: 'image/' + opt.thumbnail.extension,
 				extn: opt.thumbnail.extension,
 				rId: intRels + 2,
-				Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
+				Target: '../media/image-' + target.number + '-' + (target.relsMedia.length) + '.' + opt.thumbnail.extension,
 			})
 			slideData.imageRid = intRels + 2
 		}

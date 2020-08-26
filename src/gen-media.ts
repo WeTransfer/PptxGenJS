@@ -67,32 +67,40 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 								res.on('end', () => {
 									rel.data = Buffer.from(rawData, 'binary')
 									// check for webp image and convert to png if so
-									try {
-										const image = sharp(rel.data)
-										image
-											.metadata()
-											.then((metadata) => {
-												console.error('metadata.format = ', JSON.stringify(metadata.format))
-												if (metadata.format === 'webp') {
-													return image
-														.png()
-														.toBuffer();
-												} else {
-													return rel.data
-												}
-											})
-											.then((data) => {
-												console.error('in then, rel = ', JSON.stringify(rel));
-												zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
-												console.error('past zip');
-												resolve('done')
-											})
-									 }
-									catch (e) {
-										console.error('in catch');
+									console.error('about to try sharp, rel.Type = ', JSON.stringify(rel.type))
+									if (!rel.type.includes('video')) {
+										try {
+											const image = sharp(rel.data)
+											image
+												.metadata()
+												.then((metadata) => {
+													console.error('metadata.format = ', JSON.stringify(metadata.format))
+													if (metadata.format === 'webp') {
+														return image
+															.png()
+															.toBuffer();
+													} else {
+														return rel.data
+													}
+												})
+												.then((data) => {
+													console.error('in then, rel = ', JSON.stringify(rel));
+													zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
+													console.error('past zip');
+													resolve('done')
+												})
+										 }
+										catch (e) {
+											console.error('in catch');
+											zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
+											resolve('done')
+										}
+									} else {
+										console.error('rel.type was video, skipping sharp');
 										zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 										resolve('done')
 									}
+		
 								})
 								res.on('error', ex => {
 									console.error('in on error');

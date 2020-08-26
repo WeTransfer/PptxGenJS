@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-26T03:17:00.679Z */
+/* PptxGenJS 3.2.0-beta @ 2020-08-26T03:57:33.172Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -3420,7 +3420,7 @@ function addMediaDefinition(target, opt) {
             extn: strExtn,
             data: strData || '',
             rId: intRels + 1,
-            Target: '../media/media-' + target.number + '-' + (target.relsMedia.length + 0) + '.' + strExtn,
+            Target: '../media/media-' + target.number + '-' + (target.relsMedia.length) + '.' + strExtn,
         });
         // C: Add preview/overlay image
         if (opt.thumbnail) {
@@ -3430,7 +3430,7 @@ function addMediaDefinition(target, opt) {
                 type: 'image/' + opt.thumbnail.extension,
                 extn: opt.thumbnail.extension,
                 rId: intRels + 2,
-                Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
+                Target: '../media/image-' + target.number + '-' + (target.relsMedia.length) + '.' + opt.thumbnail.extension,
             });
             slideData.imageRid = intRels + 2;
         }
@@ -5800,30 +5800,38 @@ function encodeSlideMediaRels(layout, zip) {
                         res.on('end', function () {
                             rel.data = Buffer.from(rawData, 'binary');
                             // check for webp image and convert to png if so
-                            try {
-                                var image_1 = sharp(rel.data);
-                                image_1
-                                    .metadata()
-                                    .then(function (metadata) {
-                                    console.error('metadata.format = ', JSON.stringify(metadata.format));
-                                    if (metadata.format === 'webp') {
-                                        return image_1
-                                            .png()
-                                            .toBuffer();
-                                    }
-                                    else {
-                                        return rel.data;
-                                    }
-                                })
-                                    .then(function (data) {
-                                    console.error('in then, rel = ', JSON.stringify(rel));
-                                    zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
-                                    console.error('past zip');
+                            console.error('about to try sharp, rel.Type = ', JSON.stringify(rel.type));
+                            if (!rel.type.includes('video')) {
+                                try {
+                                    var image_1 = sharp(rel.data);
+                                    image_1
+                                        .metadata()
+                                        .then(function (metadata) {
+                                        console.error('metadata.format = ', JSON.stringify(metadata.format));
+                                        if (metadata.format === 'webp') {
+                                            return image_1
+                                                .png()
+                                                .toBuffer();
+                                        }
+                                        else {
+                                            return rel.data;
+                                        }
+                                    })
+                                        .then(function (data) {
+                                        console.error('in then, rel = ', JSON.stringify(rel));
+                                        zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
+                                        console.error('past zip');
+                                        resolve('done');
+                                    });
+                                }
+                                catch (e) {
+                                    console.error('in catch');
+                                    zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                                     resolve('done');
-                                });
+                                }
                             }
-                            catch (e) {
-                                console.error('in catch');
+                            else {
+                                console.error('rel.type was video, skipping sharp');
                                 zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                                 resolve('done');
                             }
