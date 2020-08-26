@@ -37,11 +37,13 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 	let imageProms: Promise<string>[] = []
 
 	// A: Read/Encode each audio/image/video thats not already encoded (eg: base64 provided by user)
+	console.error('relsMedia = ', JSON.stringify(layout.relsMedia));
 	const filteredRelsMedia = layout.relsMedia.filter(rel => rel.type !== 'online' && !rel.data)
+	console.error('filteredRelsMedia = ', JSON.stringify(filteredRelsMedia));
 	filteredRelsMedia
 		.forEach((rel, index) => {
 			// media objects generate 2 rels, so check to see if the previous rel has the same target
-			if (index > 0 && rel.Target.localeCompare(filteredRelsMedia[index -1].Target) !== 0) {
+			if (index === 0 || rel.Target.localeCompare(filteredRelsMedia[index -1].Target) !== 0) {
 				imageProms.push(
 					new Promise((resolve, reject) => {
 						if (fs && rel.path.indexOf('http') !== 0) {

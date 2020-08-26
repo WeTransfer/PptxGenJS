@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-26T03:05:22.488Z */
+/* PptxGenJS 3.2.0-beta @ 2020-08-26T03:17:00.679Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5769,11 +5769,13 @@ function encodeSlideMediaRels(layout, zip) {
     var https = typeof require !== 'undefined' && typeof window === 'undefined' ? require('https') : null; // NodeJS
     var imageProms = [];
     // A: Read/Encode each audio/image/video thats not already encoded (eg: base64 provided by user)
+    console.error('relsMedia = ', JSON.stringify(layout.relsMedia));
     var filteredRelsMedia = layout.relsMedia.filter(function (rel) { return rel.type !== 'online' && !rel.data; });
+    console.error('filteredRelsMedia = ', JSON.stringify(filteredRelsMedia));
     filteredRelsMedia
         .forEach(function (rel, index) {
         // media objects generate 2 rels, so check to see if the previous rel has the same target
-        if (index > 0 && rel.Target.localeCompare(filteredRelsMedia[index - 1].Target) !== 0) {
+        if (index === 0 || rel.Target.localeCompare(filteredRelsMedia[index - 1].Target) !== 0) {
             imageProms.push(new Promise(function (resolve, reject) {
                 if (fs && rel.path.indexOf('http') !== 0) {
                     // // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
