@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-26T01:43:23.580Z */
+/* PptxGenJS 3.2.0-beta @ 2020-08-26T01:54:12.112Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5794,24 +5794,29 @@ function encodeSlideMediaRels(layout, zip) {
                     res.on('end', function () {
                         rel.data = Buffer.from(rawData, 'binary');
                         // check for webp image and convert to png if so
-                        // if (rel.type !== 'video') {
-                        // 	const image = sharp(rel.data)
-                        // 	image
-                        // 		.metadata()
-                        // 		.then((metadata) => {
-                        // 			if (metadata.format === 'webp') {
-                        // 				return image
-                        // 					.png()
-                        // 					.toBuffer();
-                        // 			} else {
-                        // 				return rel.data
-                        // 			}
-                        // 		})
-                        // 		.then((data) => {
-                        // 			zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
-                        // 			resolve('done')
-                        // 		})
-                        // }
+                        try {
+                            var image_1 = sharp(rel.data);
+                            image_1
+                                .metadata()
+                                .then(function (metadata) {
+                                if (metadata.format === 'webp') {
+                                    return image_1
+                                        .png()
+                                        .toBuffer();
+                                }
+                                else {
+                                    return rel.data;
+                                }
+                            })
+                                .then(function (data) {
+                                zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
+                                resolve('done');
+                            });
+                        }
+                        catch (_a) {
+                            zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
+                            resolve('done');
+                        }
                     });
                     res.on('error', function (ex) {
                         rel.data = IMG_BROKEN;
