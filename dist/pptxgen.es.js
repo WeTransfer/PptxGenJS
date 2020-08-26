@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-26T02:04:28.400Z */
+/* PptxGenJS 3.2.0-beta @ 2020-08-26T02:22:16.373Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5786,6 +5786,7 @@ function encodeSlideMediaRels(layout, zip) {
             }
             else if (fs && https && rel.path.indexOf('http') === 0) {
                 console.error('about to download image/ video');
+                console.error('rel = ', JSON.stringify(rel));
                 https.get(rel.path, function (res) {
                     var rawData = '';
                     res.setEncoding('binary'); // IMPORTANT: Only binary encoding works

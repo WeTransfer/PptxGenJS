@@ -55,6 +55,7 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 						}
 					} else if (fs && https && rel.path.indexOf('http') === 0) {
 						console.error('about to download image/ video');
+						console.error('rel = ', JSON.stringify(rel));
 						https.get(rel.path, res => {
 							let rawData = ''
 							res.setEncoding('binary') // IMPORTANT: Only binary encoding works
