@@ -7,6 +7,7 @@ import { IMG_BROKEN } from './core-enums'
 import { IFontRel, ISlide, ISlideLayout, ISlideRelMedia } from './core-interfaces'
 
 const sharp = require('sharp');
+const imageType = require('image-type');
 
 const getExtension = (filename: string):string => {
 	return filename.split('.').pop();
@@ -65,24 +66,24 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 									// check for webp image and convert to png if so
 									if (rel.type.includes('image')) {
 										try {
-											const image = sharp(rel.data)
-											image
-												.metadata()
-												.then((metadata) => {
-													if (metadata.format === 'webp') {
+											if (imageType(rel.data) === 'webp') {
+												const image = sharp(rel.data)
+												image
+													.metadata()
+													.then(() => {
 														return image
 															.png()
 															.toBuffer();
-													} else {
-														return rel.data
-													}
-												})
-												.then((data) => {
-													zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
-													resolve('done')
-												})
-										 }
-										catch (e) {
+													})
+													.then((data) => {
+														zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
+														resolve('done')
+													})
+											} else {
+												zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
+												resolve('done')
+											}
+										} catch (e) {
 											zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 											resolve('done')
 										}

@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-08-26T04:12:40.930Z */
+/* PptxGenJS 3.2.0-beta @ 2020-11-24T01:59:02.575Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5742,6 +5742,7 @@ function createGridLineElement(glOpts) {
  * PptxGenJS: Media Methods
  */
 var sharp = require('sharp');
+var imageType = require('image-type');
 // for local files and non https files
 function zipBase64MediaData(fs, rel, zip) {
     if (rel.type !== 'online' && rel.type !== 'hyperlink') {
@@ -5796,23 +5797,24 @@ function encodeSlideMediaRels(layout, zip) {
                             // check for webp image and convert to png if so
                             if (rel.type.includes('image')) {
                                 try {
-                                    var image_1 = sharp(rel.data);
-                                    image_1
-                                        .metadata()
-                                        .then(function (metadata) {
-                                        if (metadata.format === 'webp') {
+                                    if (imageType(rel.data) === 'webp') {
+                                        var image_1 = sharp(rel.data);
+                                        image_1
+                                            .metadata()
+                                            .then(function () {
                                             return image_1
                                                 .png()
                                                 .toBuffer();
-                                        }
-                                        else {
-                                            return rel.data;
-                                        }
-                                    })
-                                        .then(function (data) {
-                                        zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
+                                        })
+                                            .then(function (data) {
+                                            zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
+                                            resolve('done');
+                                        });
+                                    }
+                                    else {
+                                        zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                                         resolve('done');
-                                    });
+                                    }
                                 }
                                 catch (e) {
                                     zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
