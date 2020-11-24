@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-11-24T01:59:02.575Z */
+/* PptxGenJS 3.2.0-beta @ 2020-11-24T02:26:13.330Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5797,7 +5797,7 @@ function encodeSlideMediaRels(layout, zip) {
                             // check for webp image and convert to png if so
                             if (rel.type.includes('image')) {
                                 try {
-                                    if (imageType(rel.data) === 'webp') {
+                                    if (imageType(rel.data).ext === 'webp') {
                                         var image_1 = sharp(rel.data);
                                         image_1
                                             .metadata()
