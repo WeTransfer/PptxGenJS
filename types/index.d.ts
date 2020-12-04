@@ -1019,7 +1019,8 @@ declare namespace PptxGenJS {
 		thumbnail?: {
 			link: string,
 			extension: string,
-		  },
+		},
+		shadow?: IShadowOptions,
 	}
 	export interface IShapeOptions extends PositionOptions {
 		align?: HAlign

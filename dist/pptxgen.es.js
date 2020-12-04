@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-11-24T02:26:13.330Z */
+/* PptxGenJS 3.2.0-beta @ 2020-12-04T01:09:37.656Z */
 import * as JSZip from 'jszip';
 
 /**
