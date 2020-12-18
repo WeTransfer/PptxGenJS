@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-12-18T21:39:30.315Z */
+/* PptxGenJS 3.2.0-beta @ 2020-12-18T21:52:16.647Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5795,10 +5795,11 @@ function encodeSlideMediaRels(layout, zip) {
                         res.on('end', function () {
                             rel.data = Buffer.from(rawData, 'binary');
                             // check for webp image and convert to png if so
+                            console.log('checking for WebP');
                             if (rel.type.includes('image')) {
                                 try {
                                     if (imageType(rel.data).ext === 'webp') {
-                                        console.error('isWebP');
+                                        console.log('isWebP');
                                         var image = sharp(rel.data);
                                         image
                                             .png()
@@ -5807,7 +5808,7 @@ function encodeSlideMediaRels(layout, zip) {
                                             zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
                                             resolve('done');
                                         })
-                                            .catch(function (err) {
+                                            .catch(function () {
                                             rel.data = IMG_BROKEN;
                                             reject("ERROR! Unable to load image: " + rel.path);
                                         });

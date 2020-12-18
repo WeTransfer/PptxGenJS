@@ -61,15 +61,13 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 								let rawData = ''
 								res.setEncoding('binary') // IMPORTANT: Only binary encoding works
 								res.on('data', chunk => (rawData += chunk))
-								res.on('end', () => {
+								res.on('end', async () => {
 									rel.data = Buffer.from(rawData, 'binary')
 									// check for webp image and convert to png if so
 									if (rel.type.includes('image')) {
 										try {
 											if (imageType(rel.data).ext === 'webp') {
-												console.error('isWebP');
-												const image = sharp(rel.data)
-												image
+												sharp(rel.data)
 													.png()
 													.toBuffer()
 													.then(data => {
