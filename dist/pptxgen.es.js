@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-12-18T21:52:16.647Z */
+/* PptxGenJS 3.2.0-beta @ 2020-12-18T22:19:06.323Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5777,10 +5777,13 @@ function encodeSlideMediaRels(layout, zip) {
                 if (fs && rel.path.indexOf('http') !== 0) {
                     // // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
                     try {
-                        var bitmap = fs.readFileSync(rel.path);
-                        rel.data = Buffer.from(bitmap).toString('base64');
-                        zipBase64MediaData(fs, rel, zip);
+                        var fileData = fs.readFileSync(rel.path);
+                        rel.data = rel.data = Buffer.from(fileData, 'binary');
+                        zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                         resolve('done');
+                        // let bitmap = fs.readFileSync(rel.path)
+                        // rel.data = Buffer.from(bitmap).toString('base64')
+                        // zipBase64MediaData(fs, rel, zip)
                     }
                     catch (ex) {
                         rel.data = IMG_BROKEN;
@@ -5795,13 +5798,10 @@ function encodeSlideMediaRels(layout, zip) {
                         res.on('end', function () {
                             rel.data = Buffer.from(rawData, 'binary');
                             // check for webp image and convert to png if so
-                            console.log('checking for WebP');
                             if (rel.type.includes('image')) {
                                 try {
                                     if (imageType(rel.data).ext === 'webp') {
-                                        console.log('isWebP');
-                                        var image = sharp(rel.data);
-                                        image
+                                        sharp(rel.data)
                                             .png()
                                             .toBuffer()
                                             .then(function (data) {
