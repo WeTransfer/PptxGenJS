@@ -67,17 +67,18 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 									if (rel.type.includes('image')) {
 										try {
 											if (imageType(rel.data).ext === 'webp') {
+												console.error('isWebP');
 												const image = sharp(rel.data)
 												image
-													.metadata()
-													.then(() => {
-														return image
-															.png()
-															.toBuffer();
-													})
-													.then((data) => {
+													.png()
+													.toBuffer()
+													.then(data => {
 														zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
 														resolve('done')
+													})
+													.catch(() => {
+														rel.data = IMG_BROKEN
+														reject(`ERROR! Unable to load image: ${rel.path}`)
 													})
 											} else {
 												zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })

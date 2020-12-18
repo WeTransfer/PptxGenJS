@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-12-04T01:09:37.656Z */
+/* PptxGenJS 3.2.0-beta @ 2020-12-18T21:39:30.315Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5798,17 +5798,18 @@ function encodeSlideMediaRels(layout, zip) {
                             if (rel.type.includes('image')) {
                                 try {
                                     if (imageType(rel.data).ext === 'webp') {
-                                        var image_1 = sharp(rel.data);
-                                        image_1
-                                            .metadata()
-                                            .then(function () {
-                                            return image_1
-                                                .png()
-                                                .toBuffer();
-                                        })
+                                        console.error('isWebP');
+                                        var image = sharp(rel.data);
+                                        image
+                                            .png()
+                                            .toBuffer()
                                             .then(function (data) {
                                             zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true });
                                             resolve('done');
+                                        })
+                                            .catch(function (err) {
+                                            rel.data = IMG_BROKEN;
+                                            reject("ERROR! Unable to load image: " + rel.path);
                                         });
                                     }
                                     else {
