@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-12-18T23:15:17.180Z */
+/* PptxGenJS 3.2.0-beta @ 2020-12-18T23:19:37.355Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5777,8 +5777,8 @@ function encodeSlideMediaRels(layout, zip) {
                 if (fs && rel.path.indexOf('http') !== 0) {
                     // // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
                     try {
-                        var fileData = fs.readFileSync(rel.path);
-                        rel.data = Buffer.from(fileData, 'binary');
+                        rel.data = fs.readFileSync(rel.path);
+                        // rel.data = Buffer.from(fileData, 'binary') 
                         zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                         resolve('done');
                         // let bitmap = fs.readFileSync(rel.path)
