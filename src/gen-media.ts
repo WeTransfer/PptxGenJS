@@ -49,7 +49,7 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 							// // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
 							try {
 								let fileData = fs.readFileSync(rel.path)
-								rel.data = rel.data = Buffer.from(fileData, 'binary') 
+								rel.data = Buffer.from(fileData, 'binary') 
 								zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 								resolve('done')
 								// let bitmap = fs.readFileSync(rel.path)
