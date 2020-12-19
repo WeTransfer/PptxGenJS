@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-12-19T02:22:15.269Z */
+/* PptxGenJS 3.2.0-beta @ 2020-12-19T03:07:28.995Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -5781,9 +5781,9 @@ function encodeSlideMediaRels(layout, zip) {
                     try {
                         console.error('reading local file');
                         var localFile = fs.readFileSync(rel.path);
-                        rel.data = Buffer.from(localFile, 'binary');
-                        console.error('rel.data = ', JSON.stringify(rel.data));
                         console.error("rel = ", JSON.stringify(rel));
+                        rel.data = Buffer.from(localFile, 'binary');
+                        console.error("rel.Target.replace('..', 'ppt') = ", JSON.stringify(rel.Target.replace('..', 'ppt')));
                         zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
                         console.error('zip = ', JSON.stringify(zip));
                         resolve('done');
@@ -5802,9 +5802,9 @@ function encodeSlideMediaRels(layout, zip) {
                         res.setEncoding('binary'); // IMPORTANT: Only binary encoding works
                         res.on('data', function (chunk) { return (rawData += chunk); });
                         res.on('end', function () {
-                            rel.data = Buffer.from(rawData, 'binary');
                             console.error('reading remote file');
-                            console.error('rel.data = ', JSON.stringify(rel.data));
+                            console.error("rel.Target.replace('..', 'ppt') = ", JSON.stringify(rel.Target.replace('..', 'ppt')));
+                            rel.data = Buffer.from(rawData, 'binary');
                             // check for webp image and convert to png if so
                             if (rel.type.includes('image')) {
                                 try {

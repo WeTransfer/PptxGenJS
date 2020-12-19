@@ -50,9 +50,9 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 							try {
 								console.error('reading local file')
 								const localFile = fs.readFileSync(rel.path)
-								rel.data = Buffer.from(localFile, 'binary')
-								console.error('rel.data = ', JSON.stringify(rel.data));
 								console.error("rel = ", JSON.stringify(rel));
+								rel.data = Buffer.from(localFile, 'binary')
+								console.error("rel.Target.replace('..', 'ppt') = ", JSON.stringify(rel.Target.replace('..', 'ppt')));
 								zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 								console.error('zip = ', JSON.stringify(zip));
 								resolve('done')
@@ -69,9 +69,9 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 								res.setEncoding('binary') // IMPORTANT: Only binary encoding works
 								res.on('data', chunk => (rawData += chunk))
 								res.on('end', () => {
-									rel.data = Buffer.from(rawData, 'binary')
 									console.error('reading remote file')
-									console.error('rel.data = ', JSON.stringify(rel.data));
+									console.error("rel.Target.replace('..', 'ppt') = ", JSON.stringify(rel.Target.replace('..', 'ppt')));
+									rel.data = Buffer.from(rawData, 'binary')
 									// check for webp image and convert to png if so
 									if (rel.type.includes('image')) {
 										try {
