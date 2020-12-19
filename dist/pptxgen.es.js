@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-12-19T01:06:32.960Z */
+/* PptxGenJS 3.2.0-beta @ 2020-12-19T01:42:01.317Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -5778,7 +5778,8 @@ function encodeSlideMediaRels(layout, zip) {
                     // // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
                     try {
                         console.error('reading local file');
-                        rel.data = fs.readFileSync(rel.path);
+                        var localFile = fs.readFileSync(rel.path);
+                        rel.data = Buffer.from(localFile, 'binary');
                         console.error('rel.data = ', JSON.stringify(rel.data));
                         // rel.data = Buffer.from(fileData, 'binary') 
                         zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true });
@@ -5799,6 +5800,8 @@ function encodeSlideMediaRels(layout, zip) {
                         res.on('data', function (chunk) { return (rawData += chunk); });
                         res.on('end', function () {
                             rel.data = Buffer.from(rawData, 'binary');
+                            console.error('reading remote file');
+                            console.error('rel.data = ', JSON.stringify(rel.data));
                             // check for webp image and convert to png if so
                             if (rel.type.includes('image')) {
                                 try {
