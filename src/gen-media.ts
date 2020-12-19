@@ -48,17 +48,10 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 						if (fs && rel.path.indexOf('http') !== 0) {
 							// // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
 							try {
-								console.error('reading local file')
 								const localFile = fs.readFileSync(rel.path)
-								console.error("rel = ", JSON.stringify(rel));
 								rel.data = Buffer.from(localFile, 'binary')
-								console.error("rel.Target.replace('..', 'ppt') = ", JSON.stringify(rel.Target.replace('..', 'ppt')));
 								zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
-								console.error('zip = ', JSON.stringify(zip));
 								resolve('done')
-								// let bitmap = fs.readFileSync(rel.path)
-								// rel.data = Buffer.from(bitmap).toString('base64')
-								// zipBase64MediaData(fs, rel, zip)
 							} catch (ex) {
 								rel.data = IMG_BROKEN
 								reject('ERROR: Unable to read media: "' + rel.path + '"\n' + ex.toString())
@@ -69,38 +62,10 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 								res.setEncoding('binary') // IMPORTANT: Only binary encoding works
 								res.on('data', chunk => (rawData += chunk))
 								res.on('end', () => {
-									console.error('reading remote file')
-									console.error("rel.Target.replace('..', 'ppt') = ", JSON.stringify(rel.Target.replace('..', 'ppt')));
 									rel.data = Buffer.from(rawData, 'binary')
-									// check for webp image and convert to png if so
-									if (rel.type.includes('image')) {
-										try {
-											if (imageType(rel.data).ext === 'webp') {
-												sharp(rel.data)
-													.png()
-													.toBuffer()
-													.then(data => {
-														zip.file(rel.Target.replace('..', 'ppt'), data, { binary: true })
-														resolve('done')
-													})
-													.catch(() => {
-														rel.data = IMG_BROKEN
-														reject(`ERROR! Unable to load image: ${rel.path}`)
-													})
-											} else {
-												zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
-												resolve('done')
-											}
-										} catch (e) {
-											zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
-											resolve('done')
-										}
-									} else {
-										zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
-										resolve('done')
-									}
-		
-								})
+									zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
+									resolve('done')
+									})
 								res.on('error', ex => {
 									rel.data = IMG_BROKEN
 									reject(`ERROR! Unable to load image: ${rel.path}`)
