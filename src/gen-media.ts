@@ -52,8 +52,9 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 								const localFile = fs.readFileSync(rel.path)
 								rel.data = Buffer.from(localFile, 'binary')
 								console.error('rel.data = ', JSON.stringify(rel.data));
-								// rel.data = Buffer.from(fileData, 'binary') 
+								console.error("rel = ", JSON.stringify(rel));
 								zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
+								console.error('zip = ', JSON.stringify(zip));
 								resolve('done')
 								// let bitmap = fs.readFileSync(rel.path)
 								// rel.data = Buffer.from(bitmap).toString('base64')
