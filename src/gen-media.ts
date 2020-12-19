@@ -48,7 +48,9 @@ export function encodeSlideMediaRels(layout: ISlide | ISlideLayout, zip: JSZip):
 						if (fs && rel.path.indexOf('http') !== 0) {
 							// // DESIGN: Node local-file encoding is syncronous, so we can load all images here, then call export with a callback (if any)
 							try {
+								console.error('reading local file')
 								rel.data = fs.readFileSync(rel.path)
+								console.error('rel.data = ', JSON.stringify(rel.data));
 								// rel.data = Buffer.from(fileData, 'binary') 
 								zip.file(rel.Target.replace('..', 'ppt'), rel.data, { binary: true })
 								resolve('done')
