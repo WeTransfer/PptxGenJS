@@ -506,7 +506,7 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 		let duplicateLinkRid = -1;
 		// check for rels already existing for a duplicate version of media
 		target.relsMedia.forEach(rel => {
-			if (rel.type === 'online' && rel.path === strPath) {
+			if (rel.type === 'online' && rel.Target === strLink) {
 				duplicateLinkRid = rel.rId;
 			}
 		});

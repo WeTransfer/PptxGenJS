@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2021-01-07T20:44:38.506Z */
+/* PptxGenJS 3.2.0-beta @ 2021-01-07T21:01:04.960Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -3380,7 +3380,7 @@ function addMediaDefinition(target, opt) {
         var duplicateLinkRid_1 = -1;
         // check for rels already existing for a duplicate version of media
         target.relsMedia.forEach(function (rel) {
-            if (rel.type === 'online' && rel.path === strPath) {
+            if (rel.type === 'online' && rel.Target === strLink) {
                 duplicateLinkRid_1 = rel.rId;
             }
         });
