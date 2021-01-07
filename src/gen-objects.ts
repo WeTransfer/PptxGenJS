@@ -531,8 +531,8 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 				Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
 			})
 		}
-		slideData.mediaRid = duplicateLinkRid !== -1 ? duplicateLinkRid : target.relsMedia[target.relsMedia.length - 1].rId
-		slideData.imageRid = duplicateLinkRid !== -1 ? duplicateLinkRid + 1 : intRels + 1
+		slideData.mediaRid = duplicateLinkRid !== -1 ? duplicateLinkRid : intRels
+		slideData.imageRid = slideData.mediaRid + 1
 	} else {
 		/* NOTE: Audio/Video files consume *TWO* rId's:
 		 * <Relationship Id="rId2" Target="../media/media1.mov" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/video"/>

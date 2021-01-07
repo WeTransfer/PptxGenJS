@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2021-01-07T21:01:04.965Z */
+/* PptxGenJS 3.2.0-beta @ 2021-01-07T21:33:57.384Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -3402,8 +3402,8 @@ function addMediaDefinition(target, opt) {
                 Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
             });
         }
-        slideData.mediaRid = duplicateLinkRid_1 !== -1 ? duplicateLinkRid_1 : target.relsMedia[target.relsMedia.length - 1].rId;
-        slideData.imageRid = duplicateLinkRid_1 !== -1 ? duplicateLinkRid_1 + 1 : intRels + 1;
+        slideData.mediaRid = duplicateLinkRid_1 !== -1 ? duplicateLinkRid_1 : intRels;
+        slideData.imageRid = slideData.mediaRid + 1;
     }
     else {
         /* NOTE: Audio/Video files consume *TWO* rId's:
