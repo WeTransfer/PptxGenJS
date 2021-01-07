@@ -467,6 +467,7 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 	let slideData: ISlideObject = {
 		type: SLIDE_OBJECT_TYPES.media,
 	}
+
 	// STEP 1: REALITY-CHECK
 	if (!strPath && !strData && strType !== 'online') {
 		throw new Error("addMedia() error: either 'data' or 'path' are required!")
@@ -502,27 +503,36 @@ export function addMediaDefinition(target: ISlide, opt: IMediaOpts) {
 	// STEP 4: Add this media to this Slide Rels (rId/rels count spans all slides! Count all media to get next rId)
 	// NOTE: rId starts at 2 (hence the intRels+1 below) as slideLayout.xml is rId=1!
 	if (strType === 'online') {
-		// A: Add video
-		target.relsMedia.push({
-			path: strPath || 'preencoded' + strExtn,
-			data: 'dummy',
-			type: 'online',
-			extn: strExtn,
-			rId: intRels,
-			Target: strLink,
-		})
-		slideData.mediaRid = target.relsMedia[target.relsMedia.length - 1].rId
+		let duplicateLinkRid = -1;
+		// check for rels already existing for a duplicate version of media
+		target.relsMedia.forEach(rel => {
+			if (rel.type === 'online' && rel.path === strPath) {
+				duplicateLinkRid = rel.rId;
+			}
+		});
 
-		// B: Add preview/overlay image
-		target.relsMedia.push({
-			path: opt.thumbnail.link,
-			data: '',
-			type: 'image/' + opt.thumbnail.extension,
-			extn: opt.thumbnail.extension,
-			rId: intRels + 1,
-			Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
-		})
-		slideData.imageRid = intRels + 1
+		if (duplicateLinkRid === -1) {
+			// A: Add video
+			target.relsMedia.push({
+				path: strPath || 'preencoded' + strExtn,
+				data: 'dummy',
+				type: 'online',
+				extn: strExtn,
+				rId: intRels,
+				Target: strLink,
+			})
+			// B: Add preview/overlay image
+			target.relsMedia.push({
+				path: opt.thumbnail.link,
+				data: '',
+				type: 'image/' + opt.thumbnail.extension,
+				extn: opt.thumbnail.extension,
+				rId: intRels + 1,
+				Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
+			})
+		}
+		slideData.mediaRid = duplicateLinkRid !== -1 ? duplicateLinkRid : target.relsMedia[target.relsMedia.length - 1].rId
+		slideData.imageRid = duplicateLinkRid !== -1 ? duplicateLinkRid + 1 : intRels + 1
 	} else {
 		/* NOTE: Audio/Video files consume *TWO* rId's:
 		 * <Relationship Id="rId2" Target="../media/media1.mov" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/video"/>

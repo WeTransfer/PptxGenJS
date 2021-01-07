@@ -1,4 +1,4 @@
-/* PptxGenJS 3.2.0-beta @ 2020-12-19T16:05:28.883Z */
+/* PptxGenJS 3.2.0-beta @ 2021-01-07T20:44:38.511Z */
 import * as JSZip from 'jszip';
 
 /**
@@ -3375,26 +3375,35 @@ function addMediaDefinition(target, opt) {
     // STEP 4: Add this media to this Slide Rels (rId/rels count spans all slides! Count all media to get next rId)
     // NOTE: rId starts at 2 (hence the intRels+1 below) as slideLayout.xml is rId=1!
     if (strType === 'online') {
-        // A: Add video
-        target.relsMedia.push({
-            path: strPath || 'preencoded' + strExtn,
-            data: 'dummy',
-            type: 'online',
-            extn: strExtn,
-            rId: intRels,
-            Target: strLink,
+        var duplicateLinkRid_1 = -1;
+        // check for rels already existing for a duplicate version of media
+        target.relsMedia.forEach(function (rel) {
+            if (rel.type === 'online' && rel.path === strPath) {
+                duplicateLinkRid_1 = rel.rId;
+            }
         });
-        slideData.mediaRid = target.relsMedia[target.relsMedia.length - 1].rId;
-        // B: Add preview/overlay image
-        target.relsMedia.push({
-            path: opt.thumbnail.link,
-            data: '',
-            type: 'image/' + opt.thumbnail.extension,
-            extn: opt.thumbnail.extension,
-            rId: intRels + 1,
-            Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
-        });
-        slideData.imageRid = intRels + 1;
+        if (duplicateLinkRid_1 === -1) {
+            // A: Add video
+            target.relsMedia.push({
+                path: strPath || 'preencoded' + strExtn,
+                data: 'dummy',
+                type: 'online',
+                extn: strExtn,
+                rId: intRels,
+                Target: strLink,
+            });
+            // B: Add preview/overlay image
+            target.relsMedia.push({
+                path: opt.thumbnail.link,
+                data: '',
+                type: 'image/' + opt.thumbnail.extension,
+                extn: opt.thumbnail.extension,
+                rId: intRels + 1,
+                Target: '../media/image-' + target.number + '-' + (target.relsMedia.length + 1) + '.' + opt.thumbnail.extension,
+            });
+        }
+        slideData.mediaRid = duplicateLinkRid_1 !== -1 ? duplicateLinkRid_1 : target.relsMedia[target.relsMedia.length - 1].rId;
+        slideData.imageRid = duplicateLinkRid_1 !== -1 ? duplicateLinkRid_1 + 1 : intRels + 1;
     }
     else {
         /* NOTE: Audio/Video files consume *TWO* rId's:
